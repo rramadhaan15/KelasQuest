@@ -86,6 +86,12 @@ describe('Ticket 10: Konsol Guru Langsung dengan Tindakan Darurat Anulir Soal (A
     expect(updatedQ2?.voidReason).toBe('Kunci jawaban salah cetak');
     expect(updatedQ2?.voidedAt).toBeDefined();
     expect(updatedSesi?.monsterHp).toBe(120);
+
+    // 4. Verifikasi butir soal induk di paket master ditandai dianulir untuk audit mutu (ADR 0007)
+    const masterQ2 = await service.getQuestion(q2.id);
+    expect(masterQ2?.statistik?.dianulir).toBe(true);
+    expect(masterQ2?.statistik?.totalDianulir).toBe(1);
+    expect(masterQ2?.statistik?.alasanAnulirTerakhir).toBe('Kunci jawaban salah cetak');
   });
 
   it('mengakhiri sesi pertarungan (SELESAI) jika anulir atau serangan menghabiskan seluruh HP monster', async () => {

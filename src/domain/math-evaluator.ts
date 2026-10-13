@@ -18,16 +18,15 @@ function gcd(a: number, b: number): number {
 
 export class MathEvaluator {
   formatToUnicodeTypography(text: string): string {
-    return text
-      .replace(/\s*\*\s*/g, ' × ')
-      .replace(/(\d+)\s*\/\s*(\d+)(?!\s*[\+\-\*\/])/g, (match, a, b) => {
-        // If standalone division like "4 / 2 = 6", format as ÷
-        if (text.includes('=')) {
-          return `${a} ÷ ${b}`;
-        }
-        return `${a}/${b}`;
-      })
-      .replace(/\s*\/\s*/g, ' ÷ ')
+    let result = text.replace(/\s*\*\s*/g, ' × ');
+
+    // Only convert / to ÷ when in an equation context (e.g. "12 / 3 = 4")
+    // Preserves fractional notation (e.g. "3/4 + 1/2")
+    if (text.includes('=')) {
+      result = result.replace(/(\d+)\s*\/\s*(\d+)/g, '$1 ÷ $2');
+    }
+
+    return result
       .replace(/\^2/g, '²')
       .replace(/\^3/g, '³')
       .replace(/\+\-/g, '±');

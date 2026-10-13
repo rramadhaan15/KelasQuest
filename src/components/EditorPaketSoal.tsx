@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { PaketSoal, ButirSoal, TingkatKesulitan } from '../domain/types';
 import { validateQuestion } from '../domain/validation';
 import { createStudentPreviewSession, StudentPreviewSession } from '../domain/preview-simulator';
+import { parseRawQuestions, convertParsedToManualInput } from '../domain/text-parser';
 
 interface EditorPaketSoalProps {
   paket: PaketSoal;
@@ -14,6 +15,7 @@ interface EditorPaketSoalProps {
   onApproveAll?: (setId: string) => Promise<void>;
   onRegenerateQuestion?: (questionId: string, direction: string) => Promise<void>;
   onDeleteQuestion?: (questionId: string) => Promise<void>;
+  onImportRawText?: (paketId: string, rawText: string) => Promise<void>;
   teacherQuota?: { remainingQuota: number; totalDailyQuota: number } | null;
 }
 
@@ -26,6 +28,7 @@ export function EditorPaketSoal({
   onApproveAll,
   onRegenerateQuestion,
   onDeleteQuestion,
+  onImportRawText,
   teacherQuota,
 }: EditorPaketSoalProps) {
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(
@@ -41,6 +44,11 @@ export function EditorPaketSoal({
   const [previewSession, setPreviewSession] = useState<StudentPreviewSession | null>(null);
   const [previewFeedback, setPreviewFeedback] = useState<{ isCorrect: boolean; explanation: string } | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+
+  // Bulk Paste states (User Story 13)
+  const [showPasteModal, setShowPasteModal] = useState(false);
+  const [rawText, setRawText] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
 
   const activeQuestion =
     activeQuestionId === 'new'
@@ -126,6 +134,29 @@ export function EditorPaketSoal({
   };
 
   const validation = validateQuestion(teks, options);
+
+  const parsedPreview = React.useMemo(() => {
+    return parseRawQuestions(rawText);
+  }, [rawText]);
+
+  const handleExecuteImport = async () => {
+    if (parsedPreview.totalDitemukan === 0) return;
+    setIsImporting(true);
+    try {
+      if (onImportRawText) {
+        await onImportRawText(paket.id, rawText);
+      } else {
+        for (const item of parsedPreview.butirSoal) {
+          const manual = convertParsedToManualInput(item);
+          await onSaveQuestion(paket.id, manual);
+        }
+      }
+      setShowPasteModal(false);
+      setRawText('');
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   const handleOptionTextChange = (index: number, val: string) => {
     const next = [...options];
@@ -325,21 +356,40 @@ export function EditorPaketSoal({
             overflowY: 'auto',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Daftar Soal ({paket.butirSoal.length})</h3>
-            <button
-              onClick={() => selectQuestion(null)}
-              style={{
-                background: 'var(--ungu-monster)',
-                color: 'var(--putih)',
-                padding: '6px 12px',
-                borderRadius: '8px',
-                fontSize: '13px',
-                fontWeight: 700,
-              }}
-            >
-              + Tambah Manual
-            </button>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button
+                type="button"
+                onClick={() => setShowPasteModal(true)}
+                title="Tempel teks soal dari Word atau WhatsApp (User Story 13)"
+                style={{
+                  background: '#F1F5F9',
+                  color: 'var(--tinta)',
+                  padding: '6px 10px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  border: '1px solid var(--abu-border)',
+                }}
+              >
+                📋 Tempel Teks
+              </button>
+              <button
+                type="button"
+                onClick={() => selectQuestion(null)}
+                style={{
+                  background: 'var(--ungu-monster)',
+                  color: 'var(--putih)',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                }}
+              >
+                + Tambah Manual
+              </button>
+            </div>
           </div>
 
           {/* AI Generator Action & Streaming Banner */}
@@ -504,7 +554,8 @@ export function EditorPaketSoal({
                 {activeQuestionId === 'new' ? 'Tulis Butir Soal Baru' : 'Sunting Butir Soal'}
               </h2>
               {activeQuestion && (
-                <span
+                <>
+                  <span
                   style={{
                     fontSize: '11px',
                     fontWeight: 700,
@@ -709,12 +760,12 @@ export function EditorPaketSoal({
           {/* Question Text */}
           <div>
             <label style={{ display: 'block', fontWeight: 700, fontSize: '14px', marginBottom: '8px' }}>
-              Pertanyaan:
+              Teks Butir Soal:
             </label>
             <textarea
               value={teks}
               onChange={(e) => setTeks(e.target.value)}
-              placeholder="Ketik pertanyaan di sini (misal: Berapa hasil dari 3/4 + 1/8?)"
+              placeholder="Ketik teks butir soal di sini (misal: Berapa hasil dari 3/4 + 1/8?)"
               rows={3}
               style={{
                 width: '100%',
@@ -791,7 +842,7 @@ export function EditorPaketSoal({
                           fontSize: '12px',
                         }}
                       >
-                        Hapus Opsi
+                        Hapus Pilihan Jawaban
                       </button>
                     )}
                   </div>
@@ -1059,6 +1110,218 @@ export function EditorPaketSoal({
                   Pilih salah satu jawaban untuk menguji alur siswa
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Paste Modal (PRD 7.4 / User Story 13) */}
+      {showPasteModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              background: 'var(--putih)',
+              borderRadius: '16px',
+              maxWidth: '720px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid var(--abu-border)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>
+                  📋 Tempel Teks Soal (Word / WhatsApp)
+                </h3>
+                <p style={{ fontSize: '12px', color: 'var(--abu-teks)', margin: '4px 0 0 0' }}>
+                  Salin dan tempel butir soal massal. Format penomoran 1., 2., dan pilihan A-D akan terurai otomatis.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPasteModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '18px',
+                  cursor: 'pointer',
+                  color: 'var(--abu-teks)',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '16px 20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
+                  Teks Mentah Soal:
+                </label>
+                <textarea
+                  value={rawText}
+                  onChange={(e) => setRawText(e.target.value)}
+                  placeholder={`1. Berapakah hasil dari 25 + 75?\nA. 80\nB. 90\n*C. 100\nD. 110\nKunci: C\nPembahasan: 25 + 75 = 100\n\n2. Ibu kota Indonesia adalah...\nA. Surabaya\nB. Jakarta\nC. Bandung\nD. Medan\nKunci: B`}
+                  rows={8}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: '1px solid var(--abu-border)',
+                    fontSize: '13px',
+                    fontFamily: 'monospace',
+                  }}
+                />
+              </div>
+
+              {/* Live Detection Summary */}
+              {rawText.trim() ? (
+                <div
+                  style={{
+                    background: '#F8FAFC',
+                    border: '1px solid var(--abu-border)',
+                    borderRadius: '10px',
+                    padding: '12px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700 }}>
+                      Hasil Analisis Teks: {parsedPreview.totalDitemukan} Soal Terdeteksi
+                    </span>
+                    {parsedPreview.totalPerluDiperiksa > 0 ? (
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '2px 8px',
+                          borderRadius: '10px',
+                          background: '#FEF3C7',
+                          color: '#B45309',
+                        }}
+                      >
+                        ⚠️ {parsedPreview.totalPerluDiperiksa} Butir Perlu Diperiksa
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '2px 8px',
+                          borderRadius: '10px',
+                          background: 'var(--hijau-bg)',
+                          color: 'var(--hijau-benar)',
+                        }}
+                      >
+                        ✓ Semua Soal Valid
+                      </span>
+                    )}
+                  </div>
+
+                  <div style={{ maxHeight: '160px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {parsedPreview.butirSoal.map((q, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          background: 'var(--putih)',
+                          border: q.perluDiperiksa ? '1px solid #FCD34D' : '1px solid var(--abu-border)',
+                          fontSize: '12px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--tinta)' }}>
+                            {idx + 1}. {q.teks || '(Teks kosong)'}
+                          </span>
+                          <span style={{ fontSize: '11px', color: 'var(--abu-teks)', whiteSpace: 'nowrap' }}>
+                            {q.pilihanJawaban.length} Opsi {q.kunci ? `• Kunci: ${q.kunci}` : ''}
+                          </span>
+                        </div>
+                        {q.perluDiperiksa && (
+                          <div style={{ color: '#D97706', fontSize: '11px', marginTop: '2px' }}>
+                            Catatan: {q.alasanPemeriksaan.join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: '12px', color: 'var(--abu-teks)', background: '#F8FAFC', padding: '10px', borderRadius: '8px' }}>
+                  💡 <strong>Tip Format:</strong> Guru dapat menandai kunci jawaban langsung dengan menambahkan tanda bintang di depan pilihan (contoh: <code>*C. 100</code>) atau baris kunci di bawah soal (contoh: <code>Kunci: C</code>).
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div
+              style={{
+                padding: '12px 20px',
+                borderTop: '1px solid var(--abu-border)',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '10px',
+                background: '#F8FAFC',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowPasteModal(false)}
+                disabled={isImporting}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--abu-border)',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteImport}
+                disabled={parsedPreview.totalDitemukan === 0 || isImporting}
+                style={{
+                  background: parsedPreview.totalDitemukan > 0 ? 'var(--ungu-monster)' : 'var(--abu-border)',
+                  color: 'var(--putih)',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: parsedPreview.totalDitemukan > 0 && !isImporting ? 'pointer' : 'not-allowed',
+                }}
+              >
+                {isImporting ? 'Mengimpor...' : `Impor ${parsedPreview.totalDitemukan} Butir Soal`}
+              </button>
             </div>
           </div>
         </div>

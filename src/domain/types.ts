@@ -195,6 +195,9 @@ export interface StatistikButirSoal {
   distribusiPilihanSalah: Record<string, number>;
   distribusiMiskonsepsi: Record<string, number>;
   labelAkurasiRendah: boolean;
+  dianulir?: boolean;
+  totalDianulir?: number;
+  alasanAnulirTerakhir?: string;
   terakhirDiperbaruiPada: string;
 }
 

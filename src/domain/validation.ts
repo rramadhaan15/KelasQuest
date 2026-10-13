@@ -12,7 +12,7 @@ export function validateQuestion(
   const errors: string[] = [];
 
   if (!teks || teks.trim().length === 0) {
-    errors.push('Teks pertanyaan tidak boleh kosong');
+    errors.push('Teks butir soal tidak boleh kosong');
   }
 
   if (!pilihanJawaban || pilihanJawaban.length < 2 || pilihanJawaban.length > 5) {
@@ -43,3 +43,6 @@ export function calculateSetStatus(butirSoalList: ButirSoal[]): 'DRAF' | 'SIAP_M
   const allValid = butirSoalList.every((soal) => soal.isValid);
   return allValid ? 'SIAP_MAIN' : 'DRAF';
 }
+
+export const calculateStatusKesiapanPaket = calculateSetStatus;
+

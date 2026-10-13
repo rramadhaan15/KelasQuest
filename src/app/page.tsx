@@ -104,6 +104,11 @@ export default function StudioSoalPage() {
     await refreshSets();
   };
 
+  const handleImportRawText = async (paketId: string, rawText: string) => {
+    await service.importFromRawText(paketId, rawText);
+    await refreshSets();
+  };
+
   return (
     <main>
       {activeSet ? (
@@ -116,6 +121,7 @@ export default function StudioSoalPage() {
           onApproveAll={handleApproveAll}
           onRegenerateQuestion={handleRegenerateQuestion}
           onDeleteQuestion={handleDeleteQuestion}
+          onImportRawText={handleImportRawText}
           teacherQuota={quota}
         />
       ) : (

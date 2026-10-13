@@ -53,8 +53,12 @@ describe('Evaluator Deterministik Perhitungan Matematika (Tiket 04)', () => {
   });
 
   it('mengonversi notasi operasi ke tipografi Unicode standar untuk kenyamanan layar kecil (ADR 0005)', () => {
-    const formatted = evaluator.formatToUnicodeTypography('3 * 4 / 2 = 6');
-    expect(formatted).toBe('3 × 4 ÷ 2 = 6');
+    const formattedEquation = evaluator.formatToUnicodeTypography('3 * 4 / 2 = 6');
+    expect(formattedEquation).toBe('3 × 4 ÷ 2 = 6');
+
+    // Memastikan bentuk pecahan murni seperti 3/4 tidak rusak menjadi 3 ÷ 4
+    const formattedFraction = evaluator.formatToUnicodeTypography('Berapa hasil dari 3/4 + 1/2?');
+    expect(formattedFraction).toBe('Berapa hasil dari 3/4 + 1/2?');
   });
 
   it('pipeline secara otomatis mengoreksi kunci jawaban jika model menandai opsi yang salah (ADR 0006)', async () => {

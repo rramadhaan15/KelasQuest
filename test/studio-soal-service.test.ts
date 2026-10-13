@@ -123,7 +123,7 @@ describe('StudioSoalService - Fondasi Beranda & Editor Manual (Tiket 01)', () =>
     });
 
     expect(butirSoalInvalid.isValid).toBe(false);
-    expect(butirSoalInvalid.validasiGalat).toContain('Teks pertanyaan tidak boleh kosong');
+    expect(butirSoalInvalid.validasiGalat).toContain('Teks butir soal tidak boleh kosong');
   });
 
   it('guru dapat menyunting butir soal manual dan memperbarui status validitasnya', async () => {
@@ -160,5 +160,40 @@ describe('StudioSoalService - Fondasi Beranda & Editor Manual (Tiket 01)', () =>
 
     const updatedSet = await service.getSet(paket.id);
     expect(updatedSet?.status).toBe('SIAP_MAIN');
+  });
+
+  it('mengimpor soal massal dari teks mentah Word/WhatsApp (User Story 13)', async () => {
+    const paket = await service.createPaket('guru-4', {
+      judul: 'Paket Impor Teks',
+      mapel: 'IPAS',
+      jenjang: 'SD',
+      topik: 'Ekosistem',
+    });
+
+    const rawText = `
+1. Hewan pemakan tumbuhan disebut...
+A. Karnivora
+B. Herbivora
+C. Omnivora
+D. Insektivora
+Kunci: B
+Pembahasan: Herbivora adalah pemakan tumbuhan.
+
+2. Komponen abiotik dalam ekosistem meliputi...
+*A. Air, udara, dan cahaya matahari
+B. Rumput dan pohon
+C. Cacing dan jamur
+D. Elang dan ular
+`;
+
+    const result = await service.importFromRawText(paket.id, rawText);
+    expect(result.totalImported).toBe(2);
+    expect(result.totalPerluDiperiksa).toBe(0);
+
+    const questions = await repository.listQuestionsBySet(paket.id);
+    expect(questions).toHaveLength(2);
+    expect(questions[0].teks).toBe('Hewan pemakan tumbuhan disebut...');
+    expect(questions[0].pilihanJawaban[1].benar).toBe(true);
+    expect(questions[1].pilihanJawaban[0].benar).toBe(true);
   });
 });

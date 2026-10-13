@@ -14,6 +14,7 @@ import {
   ButirSoalSnapshot,
   VoidResult,
   StudentResponseRecord,
+  StatistikButirSoal,
 } from './types';
 import { validateQuestion, calculateSetStatus } from './validation';
 import { CurriculumService } from './curriculum-service';
@@ -27,6 +28,7 @@ import {
   calculateTotalDuration,
 } from './boss-battle-scaling';
 import { PostGameAnalyticsRollup } from './post-game-analytics';
+import { parseRawQuestions, convertParsedToManualInput } from './text-parser';
 
 export class StudioSoalService {
   constructor(
@@ -145,6 +147,35 @@ export class StudioSoalService {
     await this.recordRevision(paketId, 'Tambah butir soal manual');
 
     return butirSoal;
+  }
+
+  async importFromRawText(
+    paketId: string,
+    rawText: string
+  ): Promise<{
+    totalImported: number;
+    butirSoal: ButirSoal[];
+    totalPerluDiperiksa: number;
+  }> {
+    const paket = await this.repository.getSet(paketId);
+    if (!paket) {
+      throw new Error(`Paket Soal dengan id ${paketId} tidak ditemukan`);
+    }
+
+    const parseResult = parseRawQuestions(rawText);
+    const addedQuestions: ButirSoal[] = [];
+
+    for (const parsed of parseResult.butirSoal) {
+      const manualInput = convertParsedToManualInput(parsed);
+      const question = await this.addManualQuestion(paketId, manualInput);
+      addedQuestions.push(question);
+    }
+
+    return {
+      totalImported: addedQuestions.length,
+      butirSoal: addedQuestions,
+      totalPerluDiperiksa: parseResult.totalPerluDiperiksa,
+    };
   }
 
   async updateQuestion(
@@ -488,9 +519,38 @@ export class StudioSoalService {
     return updated;
   }
 
+  async reviewQuestion(
+    questionId: string,
+    action: 'approve' | 'edit' | 'regenerate' | 'delete',
+    payload?: any
+  ): Promise<ButirSoal | { deleted: boolean }> {
+    switch (action) {
+      case 'approve':
+        return this.approveQuestion(questionId);
+      case 'edit':
+        return this.updateQuestion(questionId, payload || {});
+      case 'regenerate':
+        return this.regenerateQuestion(
+          questionId,
+          payload?.promptDirection,
+          payload?.customInstruction
+        );
+      case 'delete':
+        await this.deleteQuestion(questionId);
+        return { deleted: true };
+      default:
+        throw new Error(`Aksi tinjauan '${action}' tidak valid`);
+    }
+  }
+
   async validateSetReadiness(
     setId: string
-  ): Promise<{ isReady: boolean; hasUnreviewed: boolean; invalidQuestions: ButirSoal[] }> {
+  ): Promise<{
+    isReady: boolean;
+    hasUnreviewed: boolean;
+    invalidQuestions: ButirSoal[];
+    invalidQuestionIds: string[];
+  }> {
     const questions = await this.repository.listQuestionsBySet(setId);
     const invalidQuestions = questions.filter((q) => !q.isValid);
     const hasUnreviewed = questions.some((q) => q.statusTinjauan === 'BELUM_DITINJAU');
@@ -500,7 +560,25 @@ export class StudioSoalService {
       isReady,
       hasUnreviewed,
       invalidQuestions,
+      invalidQuestionIds: invalidQuestions.map((q) => q.id),
     };
+  }
+
+  // Domain Glossary Aliases (GLOSSARY.md: Paket Soal bukan Set Soal)
+  async createPaket(guruId: string, input: CreateSetInput): Promise<PaketSoal> {
+    return this.createSet(guruId, input);
+  }
+
+  async getPaket(id: string): Promise<PaketSoal | null> {
+    return this.getSet(id);
+  }
+
+  async listPaket(guruId: string): Promise<PaketSoal[]> {
+    return this.listSets(guruId);
+  }
+
+  async validatePaketReadiness(paketId: string) {
+    return this.validateSetReadiness(paketId);
   }
 
   async getTeacherQuota(guruId: string): Promise<TeacherQuota | null> {
@@ -819,6 +897,29 @@ export class StudioSoalService {
 
     await this.repository.saveSession(session);
     this.activeBattleSessions.set(session.id, session);
+
+    // Audit log to master question entity (ADR 0007)
+    if (question.originalQuestionId) {
+      const originalQuestion = await this.repository.getQuestion(question.originalQuestionId);
+      if (originalQuestion) {
+        const stats: StatistikButirSoal = originalQuestion.statistik || {
+          questionId: originalQuestion.id,
+          totalMenjawab: 0,
+          totalBenar: 0,
+          akurasiPersen: 0,
+          distribusiPilihanSalah: {},
+          distribusiMiskonsepsi: {},
+          labelAkurasiRendah: false,
+          terakhirDiperbaruiPada: now,
+        };
+        stats.dianulir = true;
+        stats.totalDianulir = (stats.totalDianulir || 0) + 1;
+        stats.alasanAnulirTerakhir = question.voidReason;
+        stats.terakhirDiperbaruiPada = now;
+        originalQuestion.statistik = stats;
+        await this.repository.saveQuestion(originalQuestion);
+      }
+    }
 
     return {
       sessionId,
