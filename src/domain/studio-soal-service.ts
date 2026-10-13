@@ -308,5 +308,170 @@ export class StudioSoalService {
       questions: generatedList,
     };
   }
+
+  async approveQuestion(questionId: string): Promise<ButirSoal> {
+    const existing = await this.repository.getQuestion(questionId);
+    if (!existing) {
+      throw new Error(`Butir soal dengan id ${questionId} tidak ditemukan`);
+    }
+
+    const updated: ButirSoal = {
+      ...existing,
+      statusTinjauan: 'DISETUJUI',
+      diperbaruiPada: new Date().toISOString(),
+    };
+
+    await this.repository.saveQuestion(updated);
+    return updated;
+  }
+
+  async approveAllValidQuestions(setId: string): Promise<{ approvedCount: number }> {
+    const questions = await this.repository.listQuestionsBySet(setId);
+    let count = 0;
+    const now = new Date().toISOString();
+
+    for (const q of questions) {
+      if (q.isValid && q.statusTinjauan !== 'DISETUJUI') {
+        q.statusTinjauan = 'DISETUJUI';
+        q.diperbaruiPada = now;
+        await this.repository.saveQuestion(q);
+        count++;
+      }
+    }
+
+    return { approvedCount: count };
+  }
+
+  async deleteQuestion(questionId: string): Promise<void> {
+    const existing = await this.repository.getQuestion(questionId);
+    if (!existing) return;
+
+    await this.repository.deleteQuestion(questionId);
+
+    const remaining = await this.repository.listQuestionsBySet(existing.paketId);
+    const paket = await this.repository.getSet(existing.paketId);
+    if (paket) {
+      paket.status = calculateSetStatus(remaining);
+      paket.diperbaruiPada = new Date().toISOString();
+      await this.repository.saveSet(paket);
+    }
+  }
+
+  async regenerateQuestion(
+    questionId: string,
+    promptDirection?: string,
+    customInstruction?: string
+  ): Promise<ButirSoal> {
+    const existing = await this.repository.getQuestion(questionId);
+    if (!existing) {
+      throw new Error(`Butir soal dengan id ${questionId} tidak ditemukan`);
+    }
+
+    const paket = await this.repository.getSet(existing.paketId);
+    if (!paket) {
+      throw new Error(`Paket Soal dengan id ${existing.paketId} tidak ditemukan`);
+    }
+
+    if (!this.aiGenerator) {
+      throw new Error('AI Generator belum dikonfigurasikan');
+    }
+
+    const context: GenerationContext = {
+      mapel: paket.mapel,
+      jenjang: paket.jenjang,
+      topik: paket.topik,
+      capaianPembelajaran: paket.capaianPembelajaran,
+      jumlahSoal: 1,
+      modeMiskonsepsi: paket.parameterPenjanaan?.modeMiskonsepsi ?? true,
+      gayaSoal: paket.parameterPenjanaan?.gayaSoal,
+      instruksiTambahan: [promptDirection, customInstruction].filter(Boolean).join(' - '),
+    };
+
+    let newDraft: any = null;
+    for await (const draft of this.aiGenerator.generateQuestionStream(context)) {
+      newDraft = draft;
+      break;
+    }
+
+    if (!newDraft) {
+      throw new Error('Gagal meregenerasi butir soal dari AI');
+    }
+
+    const now = new Date().toISOString();
+    let pilihanDraft = [...newDraft.pilihanJawaban];
+    let teksDraft = newDraft.teks;
+
+    if (this.mathEvaluator) {
+      const mathCheck = this.mathEvaluator.evaluateMathQuestion(newDraft.teks, newDraft.pilihanJawaban);
+      if (mathCheck.isArithmeticQuestion && !mathCheck.isCorrect && mathCheck.expectedAnswer) {
+        let found = false;
+        pilihanDraft = pilihanDraft.map((p: any) => {
+          if (p.teks.trim() === mathCheck.expectedAnswer) {
+            found = true;
+            return { ...p, benar: true };
+          }
+          return { ...p, benar: false };
+        });
+
+        if (!found && pilihanDraft.length > 0) {
+          pilihanDraft[0] = {
+            ...pilihanDraft[0],
+            teks: mathCheck.expectedAnswer,
+            benar: true,
+            labelMiskonsepsi: undefined,
+          };
+        }
+      }
+      teksDraft = this.mathEvaluator.formatToUnicodeTypography(teksDraft);
+    }
+
+    const pilihanJawaban: PilihanJawaban[] = pilihanDraft.map((p: any, idx: number) => ({
+      id: `opt-${idx + 1}-${Math.random().toString(36).substring(2, 6)}`,
+      teks: p.teks,
+      benar: p.benar,
+      labelMiskonsepsi: p.labelMiskonsepsi,
+    }));
+
+    const validation = validateQuestion(teksDraft, pilihanJawaban);
+
+    const updated: ButirSoal = {
+      ...existing,
+      teks: teksDraft,
+      kesulitan: newDraft.kesulitan,
+      subtopik: newDraft.subtopik,
+      pembahasan: newDraft.pembahasan,
+      waktuDetik: newDraft.waktuDetik,
+      sumber: 'AI',
+      statusTinjauan: 'BELUM_DITINJAU',
+      pilihanJawaban,
+      isValid: validation.isValid,
+      validasiGalat: validation.errors,
+      diperbaruiPada: now,
+    };
+
+    await this.repository.saveQuestion(updated);
+
+    const allQuestions = await this.repository.listQuestionsBySet(existing.paketId);
+    paket.status = calculateSetStatus(allQuestions);
+    paket.diperbaruiPada = now;
+    await this.repository.saveSet(paket);
+
+    return updated;
+  }
+
+  async validateSetReadiness(
+    setId: string
+  ): Promise<{ isReady: boolean; hasUnreviewed: boolean; invalidQuestions: ButirSoal[] }> {
+    const questions = await this.repository.listQuestionsBySet(setId);
+    const invalidQuestions = questions.filter((q) => !q.isValid);
+    const hasUnreviewed = questions.some((q) => q.statusTinjauan === 'BELUM_DITINJAU');
+    const isReady = questions.length > 0 && invalidQuestions.length === 0;
+
+    return {
+      isReady,
+      hasUnreviewed,
+      invalidQuestions,
+    };
+  }
 }
 

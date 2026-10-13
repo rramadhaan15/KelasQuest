@@ -9,9 +9,22 @@ interface EditorPaketSoalProps {
   onBack: () => void;
   onSaveQuestion: (paketId: string, questionData: any, existingId?: string) => Promise<void>;
   onGenerateAI?: (paketId: string, onProgress: (q: ButirSoal) => void, signal?: AbortSignal) => Promise<void>;
+  onApproveQuestion?: (questionId: string) => Promise<void>;
+  onApproveAll?: (setId: string) => Promise<void>;
+  onRegenerateQuestion?: (questionId: string, direction: string) => Promise<void>;
+  onDeleteQuestion?: (questionId: string) => Promise<void>;
 }
 
-export function EditorPaketSoal({ paket, onBack, onSaveQuestion, onGenerateAI }: EditorPaketSoalProps) {
+export function EditorPaketSoal({
+  paket,
+  onBack,
+  onSaveQuestion,
+  onGenerateAI,
+  onApproveQuestion,
+  onApproveAll,
+  onRegenerateQuestion,
+  onDeleteQuestion,
+}: EditorPaketSoalProps) {
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(
     paket.butirSoal.length > 0 ? paket.butirSoal[0].id : 'new'
   );
@@ -415,19 +428,91 @@ export function EditorPaketSoal({ paket, onBack, onSaveQuestion, onGenerateAI }:
             gap: '20px',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 800 }}>
-              {activeQuestionId === 'new' ? 'Tulis Butir Soal Baru' : 'Sunting Butir Soal'}
-            </h2>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <label style={{ fontSize: '13px', fontWeight: 600 }}>Tingkat Kesulitan:</label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 800 }}>
+                {activeQuestionId === 'new' ? 'Tulis Butir Soal Baru' : 'Sunting Butir Soal'}
+              </h2>
+              {activeQuestion && (
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    background:
+                      activeQuestion.statusTinjauan === 'DISETUJUI'
+                        ? 'var(--hijau-bg)'
+                        : activeQuestion.statusTinjauan === 'DIEDIT'
+                        ? '#EFF6FF'
+                        : '#FEF3C7',
+                    color:
+                      activeQuestion.statusTinjauan === 'DISETUJUI'
+                        ? 'var(--hijau-benar)'
+                        : activeQuestion.statusTinjauan === 'DIEDIT'
+                        ? '#2563EB'
+                        : '#D97706',
+                  }}
+                >
+                  {activeQuestion.statusTinjauan === 'DISETUJUI'
+                    ? '✓ Disetujui'
+                    : activeQuestion.statusTinjauan === 'DIEDIT'
+                    ? '✎ Diedit'
+                    : '⏳ Belum Ditinjau'}
+                </span>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              {activeQuestion && activeQuestion.statusTinjauan !== 'DISETUJUI' && onApproveQuestion && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await onApproveQuestion(activeQuestion.id);
+                  }}
+                  style={{
+                    background: 'var(--hijau-benar)',
+                    color: 'var(--putih)',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                  }}
+                >
+                  ✓ Setujui Soal Ini
+                </button>
+              )}
+
+              {activeQuestion && onDeleteQuestion && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (confirm('Hapus butir soal ini?')) {
+                      await onDeleteQuestion(activeQuestion.id);
+                      setActiveQuestionId(null);
+                    }
+                  }}
+                  style={{
+                    background: 'var(--merah-bg)',
+                    color: 'var(--merah-salah)',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                  }}
+                >
+                  🗑 Hapus
+                </button>
+              )}
+
               <select
                 value={kesulitan}
                 onChange={(e) => setKesulitan(e.target.value as TingkatKesulitan)}
                 style={{
-                  padding: '6px 12px',
+                  padding: '6px 10px',
                   borderRadius: '8px',
                   border: '1px solid var(--abu-border)',
+                  fontSize: '13px',
                 }}
               >
                 <option value="MUDAH">Mudah</option>
@@ -436,6 +521,82 @@ export function EditorPaketSoal({ paket, onBack, onSaveQuestion, onGenerateAI }:
               </select>
             </div>
           </div>
+
+          {/* Quick Regeneration Chips (PRD 7.3) */}
+          {activeQuestion && onRegenerateQuestion && (
+            <div
+              style={{
+                background: '#F8FAFC',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                border: '1px solid var(--abu-border)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--abu-teks)' }}>
+                ✨ Buat Ulang Soal Ini:
+              </span>
+              <button
+                type="button"
+                onClick={() => onRegenerateQuestion(activeQuestion.id, 'LEBIH_MUDAH')}
+                style={{
+                  background: '#EDE9FE',
+                  color: 'var(--ungu-monster)',
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                }}
+              >
+                Lebih Mudah
+              </button>
+              <button
+                type="button"
+                onClick={() => onRegenerateQuestion(activeQuestion.id, 'LEBIH_SULIT')}
+                style={{
+                  background: '#EDE9FE',
+                  color: 'var(--ungu-monster)',
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                }}
+              >
+                Lebih Sulit
+              </button>
+              <button
+                type="button"
+                onClick={() => onRegenerateQuestion(activeQuestion.id, 'GANTI_KONTEKS')}
+                style={{
+                  background: '#EDE9FE',
+                  color: 'var(--ungu-monster)',
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                }}
+              >
+                Ganti Konteks
+              </button>
+              <button
+                type="button"
+                onClick={() => onRegenerateQuestion(activeQuestion.id, 'PERSINGKAT')}
+                style={{
+                  background: '#EDE9FE',
+                  color: 'var(--ungu-monster)',
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                }}
+              >
+                Persingkat
+              </button>
+            </div>
+          )}
 
           {/* Validation Warning Box */}
           {!validation.isValid && (

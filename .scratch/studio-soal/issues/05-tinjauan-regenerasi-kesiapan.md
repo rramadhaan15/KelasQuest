@@ -4,10 +4,10 @@
 
 **Blocked by:** 03: Penjanaan Soal AI Inkremental dengan Streaming dan Penyimpanan Atomik
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Guru dapat meninjau, menyetujui, menyunting teks/opsi, atau menghapus butir soal individual.
-- [ ] Tersedia tombol "Setujui Semua yang Valid" untuk mempercepat peninjauan paket.
-- [ ] Aksi regenerasi per butir soal memperbarui satu kartu soal dengan arahan prompt terarah tanpa mengulang seluruh paket.
-- [ ] Status paket berpindah menjadi Siap Main secara otomatis jika seluruh butir soal memenuhi validitas struktural.
-- [ ] Pengujian memverifikasi mesin status tinjauan butir soal dan transisi kesiapan paket.
+- [x] Guru dapat meninjau, menyetujui, menyunting teks/opsi, atau menghapus butir soal individual.
+- [x] Tersedia tombol "Setujui Semua yang Valid" untuk mempercepat peninjauan paket.
+- [x] Aksi regenerasi per butir soal memperbarui satu kartu soal dengan arahan prompt terarah tanpa mengulang seluruh paket.
+- [x] Status paket berpindah menjadi Siap Main secara otomatis jika seluruh butir soal memenuhi validitas struktural.
+- [x] Pengujian memverifikasi mesin status tinjauan butir soal dan transisi kesiapan paket.

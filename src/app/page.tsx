@@ -71,6 +71,26 @@ export default function StudioSoalPage() {
     await refreshSets();
   };
 
+  const handleApproveQuestion = async (questionId: string) => {
+    await service.approveQuestion(questionId);
+    await refreshSets();
+  };
+
+  const handleApproveAll = async (setId: string) => {
+    await service.approveAllValidQuestions(setId);
+    await refreshSets();
+  };
+
+  const handleRegenerateQuestion = async (questionId: string, direction: string) => {
+    await service.regenerateQuestion(questionId, direction);
+    await refreshSets();
+  };
+
+  const handleDeleteQuestion = async (questionId: string) => {
+    await service.deleteQuestion(questionId);
+    await refreshSets();
+  };
+
   return (
     <main>
       {activeSet ? (
@@ -79,6 +99,10 @@ export default function StudioSoalPage() {
           onBack={() => setActiveSet(null)}
           onSaveQuestion={handleSaveQuestion}
           onGenerateAI={handleGenerateAI}
+          onApproveQuestion={handleApproveQuestion}
+          onApproveAll={handleApproveAll}
+          onRegenerateQuestion={handleRegenerateQuestion}
+          onDeleteQuestion={handleDeleteQuestion}
         />
       ) : (
         <BerandaStudioSoal
