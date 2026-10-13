@@ -4,10 +4,10 @@
 
 **Blocked by:** 05: Alur Tinjauan Guru, Regenerasi Butir Soal, dan Kesiapan Paket
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Peluncuran game memunculkan dialog konfirmasi lunak jika terdapat butir soal yang belum ditinjau oleh guru.
-- [ ] Sistem menyalin seluruh butir soal secara statis ke entitas Snapshot Sesi saat sesi dibuat.
-- [ ] Mutasi pada draf Paket Soal setelah sesi diluncurkan tidak mempengaruhi butir soal di sesi aktif.
-- [ ] Sistem menghasilkan kode kelas unik 6 karakter dan membuka lobi permainan.
-- [ ] Pengujian memverifikasi sifat immutability snapshot sesi dan mekanisme konfirmasi lunak.
+- [x] Peluncuran game memunculkan dialog konfirmasi lunak jika terdapat butir soal yang belum ditinjau oleh guru.
+- [x] Sistem menyalin seluruh butir soal secara statis ke entitas Snapshot Sesi saat sesi dibuat.
+- [x] Mutasi pada draf Paket Soal setelah sesi diluncurkan tidak mempengaruhi butir soal di sesi aktif.
+- [x] Sistem menghasilkan kode kelas unik 6 karakter dan membuka lobi permainan.
+- [x] Pengujian memverifikasi sifat immutability snapshot sesi dan mekanisme konfirmasi lunak.

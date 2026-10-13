@@ -127,3 +127,38 @@ export interface SesiPenyuntingan {
   clientSessionId: string;
   terakhirAktifPada: string;
 }
+
+export interface LobbyConfig {
+  namaBoss?: string;
+  tingkatKesulitanBoss?: 'NORMAL' | 'MENANTANG' | 'EPIC';
+  allowUnreviewed?: boolean;
+}
+
+export interface ButirSoalSnapshot {
+  id: string;
+  originalQuestionId: string;
+  paketId: string;
+  urutan: number;
+  teks: string;
+  kesulitan: TingkatKesulitan;
+  subtopik?: string;
+  pembahasan: string;
+  waktuDetik: number;
+  pilihanJawaban: PilihanJawaban[];
+}
+
+export type StatusSesi = 'LOBI' | 'BERLANGSUNG' | 'SELESAI';
+
+export interface SnapshotSesi {
+  id: string;
+  paketId: string;
+  guruId: string;
+  pinKelas: string;
+  status: StatusSesi;
+  config: LobbyConfig;
+  butirSoal: ButirSoalSnapshot[];
+  peringatanBelumDitinjau?: boolean;
+  dibuatPada: string;
+  monsterHp?: number;
+  monsterHpMaksimal?: number;
+}

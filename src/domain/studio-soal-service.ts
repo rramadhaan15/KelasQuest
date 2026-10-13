@@ -9,6 +9,9 @@ import {
   ParameterPenjanaan,
   RevisiPaketSoal,
   HasilSinkronisasi,
+  SnapshotSesi,
+  LobbyConfig,
+  ButirSoalSnapshot,
 } from './types';
 import { validateQuestion, calculateSetStatus } from './validation';
 import { CurriculumService } from './curriculum-service';
@@ -604,6 +607,71 @@ export class StudioSoalService {
       paket: serverSet,
       konflikTerpecahkan: 0,
     };
+  }
+
+  // --- Peluncuran Sesi Boss Battle & Snapshot Immutability (ADR 0001) ---
+
+  async launchSession(setId: string, lobbyConfig: LobbyConfig = {}): Promise<SnapshotSesi> {
+    const readiness = await this.validateSetReadiness(setId);
+    if (!readiness.isReady) {
+      throw new Error('Paket soal belum siap main: semua butir soal harus valid dan paket tidak boleh kosong.');
+    }
+
+    if (readiness.hasUnreviewed && !lobbyConfig.allowUnreviewed) {
+      throw new Error('Memerlukan konfirmasi guru karena masih ada butir soal yang belum ditinjau');
+    }
+
+    const paket = await this.getSet(setId);
+    if (!paket) {
+      throw new Error(`Paket soal dengan id ${setId} tidak ditemukan`);
+    }
+
+    // Generate 6-character uppercase PIN
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let pinKelas = '';
+    for (let i = 0; i < 6; i++) {
+      pinKelas += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    const sessionId = `sesi-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const now = new Date().toISOString();
+
+    // Deep copy / snapshot questions into immutable ButirSoalSnapshot (ADR 0001)
+    const butirSoalSnapshot: ButirSoalSnapshot[] = paket.butirSoal.map((q) => ({
+      id: `q-snap-${Math.random().toString(36).substring(2, 8)}`,
+      originalQuestionId: q.id,
+      paketId: q.paketId,
+      urutan: q.urutan,
+      teks: q.teks,
+      kesulitan: q.kesulitan,
+      subtopik: q.subtopik,
+      pembahasan: q.pembahasan,
+      waktuDetik: q.waktuDetik,
+      pilihanJawaban: JSON.parse(JSON.stringify(q.pilihanJawaban)),
+    }));
+
+    const snapshot: SnapshotSesi = {
+      id: sessionId,
+      paketId: setId,
+      guruId: paket.guruId,
+      pinKelas,
+      status: 'LOBI',
+      config: { ...lobbyConfig },
+      butirSoal: butirSoalSnapshot,
+      peringatanBelumDitinjau: readiness.hasUnreviewed,
+      dibuatPada: now,
+    };
+
+    await this.repository.saveSession(snapshot);
+    return snapshot;
+  }
+
+  async getSession(sessionId: string): Promise<SnapshotSesi | null> {
+    return this.repository.getSession(sessionId);
+  }
+
+  async getSessionByPin(pin: string): Promise<SnapshotSesi | null> {
+    return this.repository.getSessionByPin(pin);
   }
 }
 

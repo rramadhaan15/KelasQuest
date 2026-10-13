@@ -80,5 +80,25 @@ export class InMemoryStudioSoalRepository implements StudioSoalRepository {
     const list = this.revisions.get(paketId) || [];
     return JSON.parse(JSON.stringify(list));
   }
+
+  private sessions: Map<string, import('../domain/types').SnapshotSesi> = new Map();
+
+  async saveSession(session: import('../domain/types').SnapshotSesi): Promise<void> {
+    this.sessions.set(session.id, JSON.parse(JSON.stringify(session)));
+  }
+
+  async getSession(id: string): Promise<import('../domain/types').SnapshotSesi | null> {
+    const s = this.sessions.get(id);
+    return s ? JSON.parse(JSON.stringify(s)) : null;
+  }
+
+  async getSessionByPin(pin: string): Promise<import('../domain/types').SnapshotSesi | null> {
+    for (const s of this.sessions.values()) {
+      if (s.pinKelas === pin) {
+        return JSON.parse(JSON.stringify(s));
+      }
+    }
+    return null;
+  }
 }
 

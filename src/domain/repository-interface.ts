@@ -13,4 +13,9 @@ export interface StudioSoalRepository {
 
   saveRevision(revision: import('./types').RevisiPaketSoal): Promise<void>;
   listRevisions(paketId: string): Promise<import('./types').RevisiPaketSoal[]>;
+
+  saveSession(session: import('./types').SnapshotSesi): Promise<void>;
+  getSession(id: string): Promise<import('./types').SnapshotSesi | null>;
+  getSessionByPin(pin: string): Promise<import('./types').SnapshotSesi | null>;
 }
+
