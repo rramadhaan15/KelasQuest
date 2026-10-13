@@ -28,6 +28,7 @@ export interface ButirSoal {
   isValid: boolean;
   validasiGalat: string[];
   diperbaruiPada: string;
+  statistik?: StatistikButirSoal;
 }
 
 export type GayaSoal = 'LANGSUNG' | 'KONTEKS_SEHARI_HARI' | 'CERITA_PENDEK';
@@ -185,4 +186,24 @@ export interface SnapshotSesi {
   mulaiPada?: string;
   jumlahSiswaAwal?: number;
 }
+
+export interface StatistikButirSoal {
+  questionId: string;
+  totalMenjawab: number;
+  totalBenar: number;
+  akurasiPersen: number;
+  distribusiPilihanSalah: Record<string, number>;
+  distribusiMiskonsepsi: Record<string, number>;
+  labelAkurasiRendah: boolean;
+  terakhirDiperbaruiPada: string;
+}
+
+export interface StudentResponseRecord {
+  studentId: string;
+  questionId: string;
+  selectedOptionId: string;
+  isCorrect: boolean;
+  responseTimeSeconds?: number;
+}
+
 

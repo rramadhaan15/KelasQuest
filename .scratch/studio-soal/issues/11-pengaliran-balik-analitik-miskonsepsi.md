@@ -4,9 +4,9 @@
 
 **Blocked by:** 10: Konsol Guru Langsung dengan Tindakan Darurat Anulir Soal
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Worker latar belakang mengagregasikan log jawaban siswa dari sesi permainan ke Statistik Butir Soal paket asal berdasarkan ID butir soal.
-- [ ] Menghitung persentase akurasi kumulatif dan frekuensi pilihan salah berlabel miskonsepsi per subtopik.
-- [ ] Menampilkan penanda visual "Akurasi Rendah (<30%)" pada kartu soal di Studio Soal untuk memandu revisi guru.
-- [ ] Pengujian memverifikasi alur agregasi asinkron dan akurasi perhitungan statistik pasca-sesi.
+- [x] Worker latar belakang mengagregasikan log jawaban siswa dari sesi permainan ke Statistik Butir Soal paket asal berdasarkan ID butir soal.
+- [x] Menghitung persentase akurasi kumulatif dan frekuensi pilihan salah berlabel miskonsepsi per subtopik.
+- [x] Menampilkan penanda visual "Akurasi Rendah (<30%)" pada kartu soal di Studio Soal untuk memandu revisi guru.
+- [x] Pengujian memverifikasi alur agregasi asinkron dan akurasi perhitungan statistik pasca-sesi.

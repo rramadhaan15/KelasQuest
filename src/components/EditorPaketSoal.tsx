@@ -436,20 +436,37 @@ export function EditorPaketSoal({
                       cursor: 'pointer',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', gap: '6px' }}>
                       <span style={{ fontWeight: 700, fontSize: '14px' }}>Soal {idx + 1}</span>
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          padding: '2px 6px',
-                          borderRadius: '8px',
-                          background: q.isValid ? 'var(--hijau-bg)' : 'var(--merah-bg)',
-                          color: q.isValid ? 'var(--hijau-benar)' : 'var(--merah-salah)',
-                        }}
-                      >
-                        {q.isValid ? 'Valid' : 'Perlu Perbaikan'}
-                      </span>
+                      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                        {q.statistik?.labelAkurasiRendah && (
+                          <span
+                            style={{
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              padding: '2px 6px',
+                              borderRadius: '8px',
+                              background: '#FEE2E2',
+                              color: '#DC2626',
+                              border: '1px solid #FCA5A5',
+                            }}
+                          >
+                            ⚠️ Akurasi Rendah ({q.statistik.akurasiPersen}%)
+                          </span>
+                        )}
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '2px 6px',
+                            borderRadius: '8px',
+                            background: q.isValid ? 'var(--hijau-bg)' : 'var(--merah-bg)',
+                            color: q.isValid ? 'var(--hijau-benar)' : 'var(--merah-salah)',
+                          }}
+                        >
+                          {q.isValid ? 'Valid' : 'Perlu Perbaikan'}
+                        </span>
+                      </div>
                     </div>
                     <div
                       style={{
@@ -507,12 +524,29 @@ export function EditorPaketSoal({
                         : '#D97706',
                   }}
                 >
-                  {activeQuestion.statusTinjauan === 'DISETUJUI'
-                    ? '✓ Disetujui'
-                    : activeQuestion.statusTinjauan === 'DIEDIT'
-                    ? '✎ Diedit'
-                    : '⏳ Belum Ditinjau'}
-                </span>
+                    {activeQuestion.statusTinjauan === 'DISETUJUI'
+                      ? '✓ Disetujui'
+                      : activeQuestion.statusTinjauan === 'DIEDIT'
+                      ? '✎ Diedit'
+                      : '⏳ Belum Ditinjau'}
+                  </span>
+                  {activeQuestion.statistik && (
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        background: activeQuestion.statistik.labelAkurasiRendah ? '#FEE2E2' : '#DCFCE7',
+                        color: activeQuestion.statistik.labelAkurasiRendah ? '#DC2626' : '#15803D',
+                        border: activeQuestion.statistik.labelAkurasiRendah ? '1px solid #FCA5A5' : '1px solid #86EFAC',
+                      }}
+                    >
+                      {activeQuestion.statistik.labelAkurasiRendah ? '⚠️ Akurasi Rendah: ' : '🎯 Akurasi: '}
+                      {activeQuestion.statistik.akurasiPersen}% ({activeQuestion.statistik.totalBenar}/{activeQuestion.statistik.totalMenjawab} siswa)
+                    </span>
+                  )}
+                </>
               )}
             </div>
 

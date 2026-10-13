@@ -13,6 +13,7 @@ import {
   LobbyConfig,
   ButirSoalSnapshot,
   VoidResult,
+  StudentResponseRecord,
 } from './types';
 import { validateQuestion, calculateSetStatus } from './validation';
 import { CurriculumService } from './curriculum-service';
@@ -25,6 +26,7 @@ import {
   calculateDamageCompensationMultiplier,
   calculateTotalDuration,
 } from './boss-battle-scaling';
+import { PostGameAnalyticsRollup } from './post-game-analytics';
 
 export class StudioSoalService {
   constructor(
@@ -826,6 +828,29 @@ export class StudioSoalService {
       voidedAt: now,
       reason: question.voidReason,
     };
+  }
+
+  async getQuestion(id: string): Promise<ButirSoal | null> {
+    return this.repository.getQuestion(id);
+  }
+
+  // --- Analitik Pasca Permainan & Pengaliran Balik (ADR 0001) ---
+
+  async concludeSession(
+    sessionId: string,
+    responses: StudentResponseRecord[]
+  ): Promise<void> {
+    const session = await this.getSession(sessionId);
+    if (!session) {
+      throw new Error(`Sesi dengan id ${sessionId} tidak ditemukan`);
+    }
+
+    session.status = 'SELESAI';
+    await this.repository.saveSession(session);
+    this.activeBattleSessions.set(session.id, session);
+
+    const rollup = new PostGameAnalyticsRollup(this.repository);
+    await rollup.processSessionResponses(session, responses);
   }
 }
 
