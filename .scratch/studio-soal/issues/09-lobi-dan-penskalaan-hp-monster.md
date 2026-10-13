@@ -4,10 +4,10 @@
 
 **Blocked by:** 08: Peluncuran Sesi Boss Battle dan Snapshot Immutability
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Siswa dapat bergabung ke lobi menggunakan kode kelas secara anonim dan melihat daftar nama peserta.
-- [ ] HP monster dihitung dan dikunci secara definitif saat guru menekan tombol "Mulai Pertarungan" di lobi.
-- [ ] Durasi permainan disesuaikan secara proporsional terhadap total jumlah butir soal dalam paket.
-- [ ] Detak jantung koneksi memantau kehadiran siswa dan mengaktifkan pengali Kompensasi Kerusakan otomatis jika terjadi diskoneksi.
-- [ ] Pengujian memverifikasi perhitungan HP monster di lobi dan formula kompensasi kerusakan.
+- [x] Siswa dapat bergabung ke lobi menggunakan kode kelas secara anonim dan melihat daftar nama peserta.
+- [x] HP monster dihitung dan dikunci secara definitif saat guru menekan tombol "Mulai Pertarungan" di lobi.
+- [x] Durasi permainan disesuaikan secara proporsional terhadap total jumlah butir soal dalam paket.
+- [x] Detak jantung koneksi memantau kehadiran siswa dan mengaktifkan pengali Kompensasi Kerusakan otomatis jika terjadi diskoneksi.
+- [x] Pengujian memverifikasi perhitungan HP monster di lobi dan formula kompensasi kerusakan.

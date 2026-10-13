@@ -147,6 +147,13 @@ export interface ButirSoalSnapshot {
   pilihanJawaban: PilihanJawaban[];
 }
 
+export interface PesertaSesi {
+  id: string;
+  nama: string;
+  terakhirDetakJantung: number;
+  terhubung: boolean;
+}
+
 export type StatusSesi = 'LOBI' | 'BERLANGSUNG' | 'SELESAI';
 
 export interface SnapshotSesi {
@@ -157,8 +164,13 @@ export interface SnapshotSesi {
   status: StatusSesi;
   config: LobbyConfig;
   butirSoal: ButirSoalSnapshot[];
+  peserta: PesertaSesi[];
   peringatanBelumDitinjau?: boolean;
   dibuatPada: string;
   monsterHp?: number;
   monsterHpMaksimal?: number;
+  durasiTotalDetik?: number;
+  mulaiPada?: string;
+  jumlahSiswaAwal?: number;
 }
+

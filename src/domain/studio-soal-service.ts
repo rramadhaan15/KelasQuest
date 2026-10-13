@@ -19,6 +19,11 @@ import { AIQuestionGenerator, GenerationContext } from './ai-generator-interface
 import { MathEvaluator } from './math-evaluator';
 import { QuotaManager, TeacherQuota } from './quota-manager';
 import { mergeQuestionsLWW } from './offline-sync-engine';
+import {
+  calculateMonsterHp,
+  calculateDamageCompensationMultiplier,
+  calculateTotalDuration,
+} from './boss-battle-scaling';
 
 export class StudioSoalService {
   constructor(
@@ -658,20 +663,114 @@ export class StudioSoalService {
       status: 'LOBI',
       config: { ...lobbyConfig },
       butirSoal: butirSoalSnapshot,
+      peserta: [],
       peringatanBelumDitinjau: readiness.hasUnreviewed,
       dibuatPada: now,
     };
 
     await this.repository.saveSession(snapshot);
+    this.activeBattleSessions.set(snapshot.id, snapshot);
     return snapshot;
   }
 
+  private activeBattleSessions: Map<string, SnapshotSesi> = new Map();
+
   async getSession(sessionId: string): Promise<SnapshotSesi | null> {
-    return this.repository.getSession(sessionId);
+    const s = await this.repository.getSession(sessionId);
+    if (s) {
+      this.activeBattleSessions.set(s.id, s);
+    }
+    return s;
   }
 
   async getSessionByPin(pin: string): Promise<SnapshotSesi | null> {
-    return this.repository.getSessionByPin(pin);
+    const s = await this.repository.getSessionByPin(pin);
+    if (s) {
+      this.activeBattleSessions.set(s.id, s);
+    }
+    return s;
+  }
+
+  // --- Lobi Siswa, Penguncian HP, dan Kompensasi Diskoneksi (ADR 0004) ---
+
+  async joinLobby(
+    pinKelas: string,
+    namaSiswa: string
+  ): Promise<{ studentId: string; session: SnapshotSesi }> {
+    const session = await this.getSessionByPin(pinKelas);
+    if (!session) {
+      throw new Error(`Sesi dengan kode PIN ${pinKelas} tidak ditemukan`);
+    }
+    if (session.status !== 'LOBI') {
+      throw new Error('Sesi sudah tidak menerima pendaftaran peserta baru');
+    }
+
+    const studentId = `siswa-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    session.peserta.push({
+      id: studentId,
+      nama: namaSiswa,
+      terakhirDetakJantung: Date.now(),
+      terhubung: true,
+    });
+
+    await this.repository.saveSession(session);
+    this.activeBattleSessions.set(session.id, session);
+    return { studentId, session };
+  }
+
+  async startBattle(sessionId: string): Promise<SnapshotSesi> {
+    const session = await this.getSession(sessionId);
+    if (!session) {
+      throw new Error(`Sesi dengan id ${sessionId} tidak ditemukan`);
+    }
+
+    const activeStudents = session.peserta.filter((p) => p.terhubung);
+    const studentCount = activeStudents.length;
+    const questionCount = session.butirSoal.length;
+
+    const hp = calculateMonsterHp(studentCount, questionCount);
+    const duration = calculateTotalDuration(session.butirSoal);
+
+    session.status = 'BERLANGSUNG';
+    session.monsterHp = hp;
+    session.monsterHpMaksimal = hp;
+    session.durasiTotalDetik = duration;
+    session.mulaiPada = new Date().toISOString();
+    session.jumlahSiswaAwal = studentCount;
+
+    await this.repository.saveSession(session);
+    this.activeBattleSessions.set(session.id, session);
+    return session;
+  }
+
+  async recordStudentHeartbeat(sessionId: string, studentId: string): Promise<void> {
+    const session = await this.getSession(sessionId);
+    if (!session) return;
+    const student = session.peserta.find((p) => p.id === studentId);
+    if (student) {
+      student.terakhirDetakJantung = Date.now();
+      student.terhubung = true;
+      await this.repository.saveSession(session);
+      this.activeBattleSessions.set(session.id, session);
+    }
+  }
+
+  async disconnectStudent(sessionId: string, studentId: string): Promise<void> {
+    const session = await this.getSession(sessionId);
+    if (!session) return;
+    const student = session.peserta.find((p) => p.id === studentId);
+    if (student) {
+      student.terhubung = false;
+      await this.repository.saveSession(session);
+      this.activeBattleSessions.set(session.id, session);
+    }
+  }
+
+  getDamageCompensationMultiplier(sessionId: string): number {
+    const session = this.activeBattleSessions.get(sessionId);
+    if (!session || !session.jumlahSiswaAwal) return 1.0;
+    const activeCount = session.peserta.filter((p) => p.terhubung).length;
+    return calculateDamageCompensationMultiplier(session.jumlahSiswaAwal, activeCount);
   }
 }
 
