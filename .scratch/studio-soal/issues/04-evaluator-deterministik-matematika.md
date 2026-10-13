@@ -4,9 +4,9 @@
 
 **Blocked by:** 03: Penjanaan Soal AI Inkremental dengan Streaming dan Penyimpanan Atomik
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Modul evaluator deterministik memvalidasi kebenaran kalkulasi numerik pada pertanyaan dan pilihan jawaban.
-- [ ] Soal dengan kunci jawaban salah otomatis digantikan oleh butir soal baru yang valid.
-- [ ] Simbol dan ekspresi matematika dasar dirender menggunakan tipografi Unicode tanpa layout shift di layar 360 px.
-- [ ] Pengujian memverifikasi deteksi kesalahan aritmatika dan keberhasilan evaluasi deterministik tanpa ketergantungan model bahasa.
+- [x] Modul evaluator deterministik memvalidasi kebenaran kalkulasi numerik pada pertanyaan dan pilihan jawaban.
+- [x] Soal dengan kunci jawaban salah otomatis digantikan oleh butir soal baru yang valid.
+- [x] Simbol dan ekspresi matematika dasar dirender menggunakan tipografi Unicode tanpa layout shift di layar 360 px.
+- [x] Pengujian memverifikasi deteksi kesalahan aritmatika dan keberhasilan evaluasi deterministik tanpa ketergantungan model bahasa.

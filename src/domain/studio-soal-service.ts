@@ -11,12 +11,14 @@ import {
 import { validateQuestion, calculateSetStatus } from './validation';
 import { CurriculumService } from './curriculum-service';
 import { AIQuestionGenerator, GenerationContext } from './ai-generator-interface';
+import { MathEvaluator } from './math-evaluator';
 
 export class StudioSoalService {
   constructor(
     private repository: StudioSoalRepository,
     private curriculumService?: CurriculumService,
-    private aiGenerator?: AIQuestionGenerator
+    private aiGenerator?: AIQuestionGenerator,
+    private mathEvaluator?: MathEvaluator
   ) {}
 
   async createSet(guruId: string, input: CreateSetInput): Promise<PaketSoal> {
@@ -225,20 +227,47 @@ export class StudioSoalService {
         const now = new Date().toISOString();
         const questionId = `q-ai-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
-        const pilihanJawaban: PilihanJawaban[] = draft.pilihanJawaban.map((p, idx) => ({
+        let pilihanDraft = [...draft.pilihanJawaban];
+        let teksDraft = draft.teks;
+
+        if (this.mathEvaluator) {
+          const mathCheck = this.mathEvaluator.evaluateMathQuestion(draft.teks, draft.pilihanJawaban);
+          if (mathCheck.isArithmeticQuestion && !mathCheck.isCorrect && mathCheck.expectedAnswer) {
+            let found = false;
+            pilihanDraft = pilihanDraft.map((p) => {
+              if (p.teks.trim() === mathCheck.expectedAnswer) {
+                found = true;
+                return { ...p, benar: true };
+              }
+              return { ...p, benar: false };
+            });
+
+            if (!found && pilihanDraft.length > 0) {
+              pilihanDraft[0] = {
+                ...pilihanDraft[0],
+                teks: mathCheck.expectedAnswer,
+                benar: true,
+                labelMiskonsepsi: undefined,
+              };
+            }
+          }
+          teksDraft = this.mathEvaluator.formatToUnicodeTypography(teksDraft);
+        }
+
+        const pilihanJawaban: PilihanJawaban[] = pilihanDraft.map((p, idx) => ({
           id: `opt-${idx + 1}-${Math.random().toString(36).substring(2, 6)}`,
           teks: p.teks,
           benar: p.benar,
           labelMiskonsepsi: p.labelMiskonsepsi,
         }));
 
-        const validation = validateQuestion(draft.teks, pilihanJawaban);
+        const validation = validateQuestion(teksDraft, pilihanJawaban);
 
         const butirSoal: ButirSoal = {
           id: questionId,
           paketId: setId,
           urutan: currentUrutan,
-          teks: draft.teks,
+          teks: teksDraft,
           kesulitan: draft.kesulitan,
           subtopik: draft.subtopik,
           pembahasan: draft.pembahasan,
