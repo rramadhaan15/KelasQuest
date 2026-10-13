@@ -98,3 +98,32 @@ export interface UpdateQuestionInput {
   }>;
   statusTinjauan?: StatusTinjauan;
 }
+
+export interface RevisiPaketSoal {
+  versi: number;
+  paketId: string;
+  disimpanPada: string;
+  catatan?: string;
+  snapshot: PaketSoal;
+}
+
+export interface MutasiOffline {
+  id: string;
+  paketId: string;
+  jenis: 'SIMPAN_SOAL' | 'HAPUS_SOAL' | 'PERBARUI_PAKET';
+  payload: any;
+  stempelWaktu: string;
+}
+
+export interface HasilSinkronisasi {
+  berhasil: boolean;
+  paket: PaketSoal;
+  konflikTerpecahkan: number;
+  pesan?: string;
+}
+
+export interface SesiPenyuntingan {
+  paketId: string;
+  clientSessionId: string;
+  terakhirAktifPada: string;
+}

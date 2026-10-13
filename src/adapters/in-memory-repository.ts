@@ -64,4 +64,21 @@ export class InMemoryStudioSoalRepository implements StudioSoalRepository {
   async deleteQuestion(id: string): Promise<void> {
     this.questions.delete(id);
   }
+
+  private revisions: Map<string, import('../domain/types').RevisiPaketSoal[]> = new Map();
+
+  async saveRevision(revision: import('../domain/types').RevisiPaketSoal): Promise<void> {
+    const list = this.revisions.get(revision.paketId) || [];
+    list.push(JSON.parse(JSON.stringify(revision)));
+    if (list.length > 10) {
+      list.shift(); // retain max 10 latest revisions
+    }
+    this.revisions.set(revision.paketId, list);
+  }
+
+  async listRevisions(paketId: string): Promise<import('../domain/types').RevisiPaketSoal[]> {
+    const list = this.revisions.get(paketId) || [];
+    return JSON.parse(JSON.stringify(list));
+  }
 }
+

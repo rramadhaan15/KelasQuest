@@ -7,12 +7,15 @@ import {
   UpdateQuestionInput,
   PilihanJawaban,
   ParameterPenjanaan,
+  RevisiPaketSoal,
+  HasilSinkronisasi,
 } from './types';
 import { validateQuestion, calculateSetStatus } from './validation';
 import { CurriculumService } from './curriculum-service';
 import { AIQuestionGenerator, GenerationContext } from './ai-generator-interface';
 import { MathEvaluator } from './math-evaluator';
 import { QuotaManager, TeacherQuota } from './quota-manager';
+import { mergeQuestionsLWW } from './offline-sync-engine';
 
 export class StudioSoalService {
   constructor(
@@ -128,6 +131,7 @@ export class StudioSoalService {
     paket.status = newStatus;
     paket.diperbaruiPada = now;
     await this.repository.saveSet(paket);
+    await this.recordRevision(paketId, 'Tambah butir soal manual');
 
     return butirSoal;
   }
@@ -183,6 +187,7 @@ export class StudioSoalService {
       paket.status = calculateSetStatus(allQuestions);
       paket.diperbaruiPada = now;
       await this.repository.saveSet(paket);
+      await this.recordRevision(existing.paketId, 'Perbarui butir soal');
     }
 
     return updatedQuestion;
@@ -361,6 +366,7 @@ export class StudioSoalService {
       paket.status = calculateSetStatus(remaining);
       paket.diperbaruiPada = new Date().toISOString();
       await this.repository.saveSet(paket);
+      await this.recordRevision(existing.paketId, 'Hapus butir soal');
     }
   }
 
@@ -466,6 +472,7 @@ export class StudioSoalService {
     paket.status = calculateSetStatus(allQuestions);
     paket.diperbaruiPada = now;
     await this.repository.saveSet(paket);
+    await this.recordRevision(existing.paketId, 'Regenerasi butir soal');
 
     return updated;
   }
@@ -487,6 +494,116 @@ export class StudioSoalService {
 
   async getTeacherQuota(guruId: string): Promise<TeacherQuota | null> {
     return this.quotaManager ? this.quotaManager.getQuota(guruId) : null;
+  }
+
+  // --- Offline Sync & Revision History (ADR 0003) ---
+
+  private activeSessions: Map<string, { sessionId: string; updatedAt: number }> = new Map();
+
+  registerEditorSession(paketId: string, sessionId: string): { takenOver: boolean } {
+    this.activeSessions.set(paketId, { sessionId, updatedAt: Date.now() });
+    return { takenOver: false };
+  }
+
+  checkEditorSession(paketId: string, sessionId: string): { takenOver: boolean } {
+    const current = this.activeSessions.get(paketId);
+    if (!current) return { takenOver: false };
+    return { takenOver: current.sessionId !== sessionId };
+  }
+
+  private async recordRevision(paketId: string, catatan?: string): Promise<void> {
+    const currentSet = await this.getSet(paketId);
+    if (!currentSet) return;
+    const revisions = await this.repository.listRevisions(paketId);
+    const nextVersion = revisions.length > 0 ? revisions[revisions.length - 1].versi + 1 : 1;
+    const revisi: RevisiPaketSoal = {
+      versi: nextVersion,
+      paketId,
+      disimpanPada: new Date().toISOString(),
+      catatan,
+      snapshot: JSON.parse(JSON.stringify(currentSet)),
+    };
+    await this.repository.saveRevision(revisi);
+  }
+
+  async getRevisions(paketId: string): Promise<RevisiPaketSoal[]> {
+    return this.repository.listRevisions(paketId);
+  }
+
+  async rollbackToRevision(paketId: string, versi: number): Promise<PaketSoal> {
+    const revisions = await this.repository.listRevisions(paketId);
+    const target = revisions.find((r) => r.versi === versi);
+    if (!target) {
+      throw new Error(`Revisi versi ${versi} tidak ditemukan`);
+    }
+
+    const currentQuestions = await this.repository.listQuestionsBySet(paketId);
+    for (const q of currentQuestions) {
+      await this.repository.deleteQuestion(q.id);
+    }
+
+    for (const q of target.snapshot.butirSoal) {
+      await this.repository.saveQuestion(q);
+    }
+
+    const restoredSet: PaketSoal = {
+      ...target.snapshot,
+      diperbaruiPada: new Date().toISOString(),
+    };
+    await this.repository.saveSet(restoredSet);
+    await this.recordRevision(paketId, `Rollback ke versi ${versi}`);
+
+    const updated = await this.getSet(paketId);
+    return updated!;
+  }
+
+  async syncOfflineDraft(
+    paketId: string,
+    clientDraft: PaketSoal,
+    clientSessionId?: string
+  ): Promise<HasilSinkronisasi> {
+    if (clientSessionId) {
+      const sessionStatus = this.checkEditorSession(paketId, clientSessionId);
+      if (sessionStatus.takenOver) {
+        return {
+          berhasil: false,
+          paket: (await this.getSet(paketId))!,
+          konflikTerpecahkan: 0,
+          pesan: 'Sesi penyuntingan telah diambil alih di perangkat atau tab lain',
+        };
+      }
+    }
+
+    const serverSet = await this.getSet(paketId);
+    if (!serverSet) {
+      throw new Error(`Paket soal ${paketId} tidak ditemukan`);
+    }
+
+    // Merge questions using LWW
+    const serverQuestions = serverSet.butirSoal;
+    const clientQuestions = clientDraft.butirSoal || [];
+    const mergedQuestions = mergeQuestionsLWW(serverQuestions, clientQuestions);
+
+    // Save all merged questions to repository
+    for (const q of mergedQuestions) {
+      await this.repository.saveQuestion(q);
+    }
+
+    serverSet.butirSoal = mergedQuestions;
+    serverSet.status = calculateSetStatus(mergedQuestions);
+    serverSet.diperbaruiPada = new Date().toISOString();
+    if (clientDraft.judul && clientDraft.judul !== serverSet.judul) {
+      serverSet.judul = clientDraft.judul;
+    }
+
+    await this.repository.saveSet(serverSet);
+    await this.recordRevision(paketId, 'Sinkronisasi draf luring LWW');
+
+    return {
+      berhasil: true,
+      paket: serverSet,
+      konflikTerpecahkan: 0,
+    };
   }
 }
 

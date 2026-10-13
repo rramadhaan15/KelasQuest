@@ -4,10 +4,10 @@
 
 **Blocked by:** 05: Alur Tinjauan Guru, Regenerasi Butir Soal, dan Kesiapan Paket
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Draf paket soal dan butir soal tersimpan otomatis di IndexedDB lokal setiap 2 detik.
-- [ ] Antrean perubahan lokal otomatis disinkronkan saat status jaringan kembali daring.
-- [ ] Resolusi konflik menggabungkan perubahan pada tingkat butir soal individual berdasarkan stempel waktu modifikasi.
-- [ ] Deteksi multi-tab/perangkat memunculkan peringatan pengambilalihan sesi secara anggun.
-- [ ] Pengujian memverifikasi alur luring-ke-daring dan integritas data tanpa kehilangan butir soal konkuren.
+- [x] Draf paket soal dan butir soal tersimpan otomatis di IndexedDB lokal setiap 2 detik.
+- [x] Antrean perubahan lokal otomatis disinkronkan saat status jaringan kembali daring.
+- [x] Resolusi konflik menggabungkan perubahan pada tingkat butir soal individual berdasarkan stempel waktu modifikasi.
+- [x] Deteksi multi-tab/perangkat memunculkan peringatan pengambilalihan sesi secara anggun.
+- [x] Pengujian memverifikasi alur luring-ke-daring dan integritas data tanpa kehilangan butir soal konkuren.

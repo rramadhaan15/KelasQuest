@@ -10,4 +10,7 @@ export interface StudioSoalRepository {
   getQuestion(id: string): Promise<ButirSoal | null>;
   listQuestionsBySet(paketId: string): Promise<ButirSoal[]>;
   deleteQuestion(id: string): Promise<void>;
+
+  saveRevision(revision: import('./types').RevisiPaketSoal): Promise<void>;
+  listRevisions(paketId: string): Promise<import('./types').RevisiPaketSoal[]>;
 }
