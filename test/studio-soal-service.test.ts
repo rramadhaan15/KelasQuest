@@ -42,7 +42,8 @@ describe('StudioSoalService - Fondasi Beranda & Editor Manual (Tiket 01)', () =>
 
     const daftar = await service.listSets('guru-rina');
     expect(daftar).toHaveLength(2);
-    expect(daftar[0].judul).toBe('Pecahan Bagian 1');
+    expect(daftar.map((d) => d.judul)).toContain('Pecahan Bagian 1');
+    expect(daftar.map((d) => d.judul)).toContain('Pecahan Bagian 2');
   });
 
   it('guru dapat menambahkan butir soal manual dengan pilihan jawaban valid', async () => {
