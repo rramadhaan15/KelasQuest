@@ -50,6 +50,33 @@ export function EditorPaketSoal({
   const [rawText, setRawText] = useState('');
   const [isImporting, setIsImporting] = useState(false);
 
+  // Gemini API Key states
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [hasCustomKey, setHasCustomKey] = useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('gemini_api_key') || '';
+      setApiKeyInput(stored);
+      setHasCustomKey(Boolean(stored));
+    }
+  }, []);
+
+  const handleSaveApiKey = () => {
+    if (typeof window !== 'undefined') {
+      const trimmed = apiKeyInput.trim();
+      if (trimmed) {
+        localStorage.setItem('gemini_api_key', trimmed);
+        setHasCustomKey(true);
+      } else {
+        localStorage.removeItem('gemini_api_key');
+        setHasCustomKey(false);
+      }
+      setShowApiKeyModal(false);
+    }
+  };
+
   const activeQuestion =
     activeQuestionId === 'new'
       ? null
@@ -284,7 +311,27 @@ export function EditorPaketSoal({
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            type="button"
+            onClick={() => setShowApiKeyModal(true)}
+            title="Konfigurasi kunci Google Gemini API untuk generate live (opsional)"
+            style={{
+              fontSize: '12px',
+              fontWeight: 700,
+              color: hasCustomKey ? '#15803D' : '#64748B',
+              background: hasCustomKey ? '#DCFCE7' : '#F1F5F9',
+              border: hasCustomKey ? '1px solid #86EFAC' : '1px solid var(--abu-border)',
+              padding: '4px 10px',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            {hasCustomKey ? '✨ Gemini AI Aktif' : '🔑 Kunci Gemini AI'}
+          </button>
+
           {teacherQuota && (
             <span
               style={{
@@ -1321,6 +1368,117 @@ export function EditorPaketSoal({
                 }}
               >
                 {isImporting ? 'Mengimpor...' : `Impor ${parsedPreview.totalDitemukan} Butir Soal`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Gemini API Key Setting Modal */}
+      {showApiKeyModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(16, 26, 58, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 110,
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              background: 'var(--putih)',
+              borderRadius: '16px',
+              maxWidth: '520px',
+              width: '100%',
+              padding: '24px',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--tinta)' }}>
+                🔑 Kunci Google Gemini AI (Opsional)
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowApiKeyModal(false)}
+                style={{ background: 'transparent', border: 'none', fontSize: '18px', cursor: 'pointer', color: 'var(--abu-teks)' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <p style={{ fontSize: '13px', color: 'var(--abu-teks)', marginBottom: '16px', lineHeight: 1.5 }}>
+              Masukkan API Key Google Gemini Anda agar AI dapat menyusun soal langsung secara live dari model cloud. Kunci ini hanya tersimpan secara lokal dan aman di browser Anda.
+            </p>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px' }}>
+                Gemini API Key:
+              </label>
+              <input
+                type="password"
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                placeholder="AIzaSy..."
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--abu-border)',
+                  fontSize: '14px',
+                  fontFamily: 'monospace',
+                }}
+              />
+            </div>
+
+            <div
+              style={{
+                background: '#F8FAFC',
+                border: '1px solid var(--abu-border)',
+                borderRadius: '8px',
+                padding: '10px 12px',
+                fontSize: '12px',
+                color: 'var(--abu-teks)',
+                marginBottom: '20px',
+              }}
+            >
+              💡 <strong>Catatan:</strong> Jika Anda tidak memiliki API Key, kosongkan saja field ini. KelasQuest secara otomatis menggunakan <strong>Mesin Kurikulum Cerdas Bawaan</strong> yang langsung menghasilkan 20 butir soal lengkap dan bervariasi sesuai topik Anda.
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setShowApiKeyModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--abu-border)',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveApiKey}
+                style={{
+                  background: 'var(--ungu-monster)',
+                  color: 'var(--putih)',
+                  padding: '8px 18px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Simpan & Terapkan
               </button>
             </div>
           </div>
