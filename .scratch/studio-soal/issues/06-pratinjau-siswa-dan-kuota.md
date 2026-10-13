@@ -4,9 +4,9 @@
 
 **Blocked by:** 05: Alur Tinjauan Guru, Regenerasi Butir Soal, dan Kesiapan Paket
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Guru dapat mensimulasikan pengalaman bermain siswa dalam bingkai HP interaktif tanpa mempengaruhi data kelas.
-- [ ] Indikator kuota harian menampilkan sisa jatah pembuatan butir soal dan jadwal reset harian.
-- [ ] Pembatalan proses penjanaan di tengah jalan hanya memotong kuota proporsional terhadap butir soal yang berhasil tersimpan.
-- [ ] Pengujian memverifikasi logika pemotongan kuota proporsional dan fungsi pratinjau.
+- [x] Guru dapat mensimulasikan pengalaman bermain siswa dalam bingkai HP interaktif tanpa mempengaruhi data kelas.
+- [x] Indikator kuota harian menampilkan sisa jatah pembuatan butir soal dan jadwal reset harian.
+- [x] Pembatalan proses penjanaan di tengah jalan hanya memotong kuota proporsional terhadap butir soal yang berhasil tersimpan.
+- [x] Pengujian memverifikasi logika pemotongan kuota proporsional dan fungsi pratinjau.

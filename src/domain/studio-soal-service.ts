@@ -12,13 +12,15 @@ import { validateQuestion, calculateSetStatus } from './validation';
 import { CurriculumService } from './curriculum-service';
 import { AIQuestionGenerator, GenerationContext } from './ai-generator-interface';
 import { MathEvaluator } from './math-evaluator';
+import { QuotaManager, TeacherQuota } from './quota-manager';
 
 export class StudioSoalService {
   constructor(
     private repository: StudioSoalRepository,
     private curriculumService?: CurriculumService,
     private aiGenerator?: AIQuestionGenerator,
-    private mathEvaluator?: MathEvaluator
+    private mathEvaluator?: MathEvaluator,
+    private quotaManager?: QuotaManager
   ) {}
 
   async createSet(guruId: string, input: CreateSetInput): Promise<PaketSoal> {
@@ -280,6 +282,11 @@ export class StudioSoalService {
           diperbaruiPada: now,
         };
 
+        // Potong kuota harian secara proporsional per butir soal yang berhasil tersimpan
+        if (this.quotaManager) {
+          await this.quotaManager.consumeQuota(paket.guruId, 1);
+        }
+
         // Simpan langsung secara atomik ke database sebelum memanggil callback (ADR 0002)
         await this.repository.saveQuestion(butirSoal);
         generatedList.push(butirSoal);
@@ -449,6 +456,10 @@ export class StudioSoalService {
       diperbaruiPada: now,
     };
 
+    if (this.quotaManager) {
+      await this.quotaManager.consumeQuota(paket.guruId, 1);
+    }
+
     await this.repository.saveQuestion(updated);
 
     const allQuestions = await this.repository.listQuestionsBySet(existing.paketId);
@@ -472,6 +483,10 @@ export class StudioSoalService {
       hasUnreviewed,
       invalidQuestions,
     };
+  }
+
+  async getTeacherQuota(guruId: string): Promise<TeacherQuota | null> {
+    return this.quotaManager ? this.quotaManager.getQuota(guruId) : null;
   }
 }
 

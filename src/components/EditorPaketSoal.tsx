@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { PaketSoal, ButirSoal, TingkatKesulitan } from '../domain/types';
 import { validateQuestion } from '../domain/validation';
+import { createStudentPreviewSession, StudentPreviewSession } from '../domain/preview-simulator';
 
 interface EditorPaketSoalProps {
   paket: PaketSoal;
@@ -13,6 +14,7 @@ interface EditorPaketSoalProps {
   onApproveAll?: (setId: string) => Promise<void>;
   onRegenerateQuestion?: (questionId: string, direction: string) => Promise<void>;
   onDeleteQuestion?: (questionId: string) => Promise<void>;
+  teacherQuota?: { remainingQuota: number; totalDailyQuota: number } | null;
 }
 
 export function EditorPaketSoal({
@@ -24,6 +26,7 @@ export function EditorPaketSoal({
   onApproveAll,
   onRegenerateQuestion,
   onDeleteQuestion,
+  teacherQuota,
 }: EditorPaketSoalProps) {
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(
     paket.butirSoal.length > 0 ? paket.butirSoal[0].id : 'new'
@@ -32,6 +35,12 @@ export function EditorPaketSoal({
   const [generatingAI, setGeneratingAI] = useState(false);
   const [generateProgress, setGenerateProgress] = useState(0);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+
+  // Student Preview states
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewSession, setPreviewSession] = useState<StudentPreviewSession | null>(null);
+  const [previewFeedback, setPreviewFeedback] = useState<{ isCorrect: boolean; explanation: string } | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
   const activeQuestion =
     activeQuestionId === 'new'
@@ -242,6 +251,50 @@ export function EditorPaketSoal({
               </span>
             </div>
           </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {teacherQuota && (
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 700,
+                background: '#FEF3C7',
+                color: '#92400E',
+                padding: '4px 10px',
+                borderRadius: '12px',
+                border: '1px solid #FDE68A',
+              }}
+            >
+              ⚡ Kuota AI: {teacherQuota.remainingQuota} / {teacherQuota.totalDailyQuota}
+            </span>
+          )}
+
+          {paket.butirSoal.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setPreviewSession(createStudentPreviewSession(paket));
+                setShowPreviewModal(true);
+                setPreviewFeedback(null);
+                setSelectedAnswer(null);
+              }}
+              style={{
+                background: '#EDE9FE',
+                color: 'var(--ungu-monster)',
+                border: '1px solid #DDD6FE',
+                padding: '8px 14px',
+                borderRadius: '10px',
+                fontSize: '13px',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              🎮 Main sebagai Siswa
+            </button>
+          )}
         </div>
       </header>
 
@@ -787,6 +840,195 @@ export function EditorPaketSoal({
           </div>
         </div>
       </div>
+
+      {/* Student Preview Phone Simulator Modal */}
+      {showPreviewModal && previewSession && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(16, 26, 58, 0.65)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            zIndex: 200,
+          }}
+        >
+          <div
+            style={{
+              background: 'var(--putih)',
+              width: '380px',
+              maxWidth: '100%',
+              borderRadius: '32px',
+              border: '8px solid #1E293B',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: '560px',
+              maxHeight: '90vh',
+            }}
+          >
+            {/* Phone Notch / Top Bar */}
+            <div
+              style={{
+                background: '#1E293B',
+                color: 'var(--putih)',
+                padding: '8px 16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                fontSize: '12px',
+                fontWeight: 700,
+              }}
+            >
+              <span>🎮 Pratinjau Main Siswa</span>
+              <button
+                type="button"
+                onClick={() => setShowPreviewModal(false)}
+                style={{ background: 'transparent', color: '#94A3B8', fontSize: '14px' }}
+              >
+                ✕ Tutup
+              </button>
+            </div>
+
+            {/* In-Game Header */}
+            <div style={{ padding: '16px', background: 'var(--langit)', borderBottom: '1px solid var(--abu-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
+                <span>Soal {previewSession.currentIndex + 1} dari {previewSession.totalQuestions}</span>
+                <span style={{ color: 'var(--api-serangan)' }}>⏱ {previewSession.currentQuestion.waktuDetik} dtk</span>
+              </div>
+              <div style={{ height: '6px', background: '#CBD5E1', borderRadius: '3px', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    height: '100%',
+                    width: `${((previewSession.currentIndex + 1) / previewSession.totalQuestions) * 100}%`,
+                    background: 'var(--ungu-monster)',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Question Body */}
+            <div style={{ padding: '20px', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--tinta)' }}>
+                {previewSession.currentQuestion.teks}
+              </h3>
+
+              {/* Shuffled Options */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {previewSession.currentQuestion.pilihanJawaban.map((opt, i) => {
+                  const isSelected = selectedAnswer === opt.teks;
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      disabled={Boolean(previewFeedback)}
+                      onClick={() => {
+                        setSelectedAnswer(opt.teks);
+                        const result = previewSession.submitAnswer(opt.teks);
+                        setPreviewFeedback(result);
+                      }}
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '12px',
+                        border: isSelected
+                          ? '2px solid var(--ungu-monster)'
+                          : '1px solid var(--abu-border)',
+                        background:
+                          previewFeedback && isSelected
+                            ? previewFeedback.isCorrect
+                              ? 'var(--hijau-bg)'
+                              : 'var(--merah-bg)'
+                            : isSelected
+                            ? '#F5F3FF'
+                            : 'var(--putih)',
+                        color: 'var(--tinta)',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        textAlign: 'left',
+                        cursor: previewFeedback ? 'default' : 'pointer',
+                      }}
+                    >
+                      {String.fromCharCode(65 + i)}. {opt.teks}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Feedback Box */}
+              {previewFeedback && (
+                <div
+                  style={{
+                    padding: '12px',
+                    borderRadius: '10px',
+                    background: previewFeedback.isCorrect ? 'var(--hijau-bg)' : 'var(--merah-bg)',
+                    border: `1px solid ${previewFeedback.isCorrect ? 'var(--hijau-benar)' : 'var(--merah-salah)'}`,
+                    fontSize: '13px',
+                  }}
+                >
+                  <strong style={{ color: previewFeedback.isCorrect ? 'var(--hijau-benar)' : 'var(--merah-salah)' }}>
+                    {previewFeedback.isCorrect ? '✓ Jawaban Anda Benar!' : '✗ Jawaban Belum Tepat!'}
+                  </strong>
+                  <p style={{ marginTop: '4px', color: 'var(--tinta)' }}>{previewFeedback.explanation}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Actions in Phone */}
+            <div style={{ padding: '16px', background: 'var(--putih)', borderTop: '1px solid var(--abu-border)' }}>
+              {previewFeedback ? (
+                previewSession.currentIndex + 1 < previewSession.totalQuestions ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      previewSession.nextQuestion();
+                      setSelectedAnswer(null);
+                      setPreviewFeedback(null);
+                    }}
+                    style={{
+                      width: '100%',
+                      background: 'var(--ungu-monster)',
+                      color: 'var(--putih)',
+                      padding: '12px',
+                      borderRadius: '12px',
+                      fontWeight: 700,
+                      fontSize: '15px',
+                    }}
+                  >
+                    Soal Berikutnya →
+                  </button>
+                ) : (
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: 800, fontSize: '18px', color: 'var(--hijau-benar)', marginBottom: '8px' }}>
+                      Selesai! Skor: {previewSession.score} / 100
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowPreviewModal(false)}
+                      style={{
+                        width: '100%',
+                        background: 'var(--ungu-monster)',
+                        color: 'var(--putih)',
+                        padding: '12px',
+                        borderRadius: '12px',
+                        fontWeight: 700,
+                      }}
+                    >
+                      Tutup Pratinjau
+                    </button>
+                  </div>
+                )
+              ) : (
+                <div style={{ fontSize: '12px', textAlign: 'center', color: 'var(--abu-teks)' }}>
+                  Pilih salah satu jawaban untuk menguji alur siswa
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

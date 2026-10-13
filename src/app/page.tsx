@@ -10,19 +10,32 @@ import { EditorPaketSoal } from '../components/EditorPaketSoal';
 // Initial repository & service instance
 import { CurriculumService } from '../domain/curriculum-service';
 import { MockAIQuestionGenerator } from '../adapters/mock-ai-generator';
+import { MathEvaluator } from '../domain/math-evaluator';
+import { QuotaManager, TeacherQuota } from '../domain/quota-manager';
 
 const repository = new InMemoryStudioSoalRepository();
 const curriculumService = new CurriculumService();
 const aiGenerator = new MockAIQuestionGenerator();
-const service = new StudioSoalService(repository, curriculumService, aiGenerator);
+const mathEvaluator = new MathEvaluator();
+const quotaManager = new QuotaManager(200);
+const service = new StudioSoalService(
+  repository,
+  curriculumService,
+  aiGenerator,
+  mathEvaluator,
+  quotaManager
+);
 
 export default function StudioSoalPage() {
   const [sets, setSets] = useState<PaketSoal[]>([]);
   const [activeSet, setActiveSet] = useState<PaketSoal | null>(null);
+  const [quota, setQuota] = useState<TeacherQuota | null>(null);
 
   const refreshSets = async () => {
     const list = await service.listSets('guru-demo');
     setSets([...list]);
+    const q = await service.getTeacherQuota('guru-demo');
+    setQuota(q);
     if (activeSet) {
       const updated = await service.getSet(activeSet.id);
       setActiveSet(updated ? { ...updated } : null);
@@ -103,6 +116,7 @@ export default function StudioSoalPage() {
           onApproveAll={handleApproveAll}
           onRegenerateQuestion={handleRegenerateQuestion}
           onDeleteQuestion={handleDeleteQuestion}
+          teacherQuota={quota}
         />
       ) : (
         <BerandaStudioSoal
