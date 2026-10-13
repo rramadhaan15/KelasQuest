@@ -12,6 +12,7 @@ import {
   SnapshotSesi,
   LobbyConfig,
   ButirSoalSnapshot,
+  VoidResult,
 } from './types';
 import { validateQuestion, calculateSetStatus } from './validation';
 import { CurriculumService } from './curriculum-service';
@@ -771,6 +772,60 @@ export class StudioSoalService {
     if (!session || !session.jumlahSiswaAwal) return 1.0;
     const activeCount = session.peserta.filter((p) => p.terhubung).length;
     return calculateDamageCompensationMultiplier(session.jumlahSiswaAwal, activeCount);
+  }
+
+  // --- Konsol Guru Langsung & Anulir Darurat (ADR 0007) ---
+
+  async voidQuestion(
+    sessionId: string,
+    questionId: string,
+    reason?: string
+  ): Promise<VoidResult> {
+    const session = await this.getSession(sessionId);
+    if (!session) {
+      throw new Error(`Sesi dengan id ${sessionId} tidak ditemukan`);
+    }
+
+    const question = session.butirSoal.find(
+      (q) => q.id === questionId || q.originalQuestionId === questionId
+    );
+    if (!question) {
+      throw new Error(`Butir soal ${questionId} tidak ditemukan pada sesi`);
+    }
+
+    if (question.isVoided) {
+      throw new Error(`Butir soal ${questionId} sudah pernah dianulir`);
+    }
+
+    const now = new Date().toISOString();
+    question.isVoided = true;
+    question.voidedAt = now;
+    question.voidReason = reason || 'Dianulir oleh guru di kelas';
+
+    // Calculate full damage for all students
+    const studentCount = session.jumlahSiswaAwal || session.peserta.length || 1;
+    const compensationMultiplier = this.getDamageCompensationMultiplier(sessionId);
+    const damageAwarded = Math.round(studentCount * 100 * compensationMultiplier);
+
+    const currentHp = session.monsterHp ?? 0;
+    const remainingHp = Math.max(0, currentHp - damageAwarded);
+    session.monsterHp = remainingHp;
+
+    if (remainingHp === 0) {
+      session.status = 'SELESAI';
+    }
+
+    await this.repository.saveSession(session);
+    this.activeBattleSessions.set(session.id, session);
+
+    return {
+      sessionId,
+      questionId: question.id,
+      damageAwarded,
+      remainingMonsterHp: remainingHp,
+      voidedAt: now,
+      reason: question.voidReason,
+    };
   }
 }
 

@@ -145,6 +145,18 @@ export interface ButirSoalSnapshot {
   pembahasan: string;
   waktuDetik: number;
   pilihanJawaban: PilihanJawaban[];
+  isVoided?: boolean;
+  voidedAt?: string;
+  voidReason?: string;
+}
+
+export interface VoidResult {
+  sessionId: string;
+  questionId: string;
+  damageAwarded: number;
+  remainingMonsterHp: number;
+  voidedAt: string;
+  reason?: string;
 }
 
 export interface PesertaSesi {
