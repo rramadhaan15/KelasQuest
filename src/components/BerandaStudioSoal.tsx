@@ -328,299 +328,469 @@ export function BerandaStudioSoal({ sets, onOpenSet, onCreateNewSet }: BerandaSt
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(16, 26, 58, 0.45)',
+            background: 'rgba(16, 26, 58, 0.5)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '20px',
+            padding: '16px',
             zIndex: 100,
+            overflowY: 'auto',
           }}
         >
           <div
             style={{
               background: 'var(--putih)',
               borderRadius: '20px',
-              maxWidth: '520px',
+              maxWidth: '560px',
               width: '100%',
-              padding: '28px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+              maxHeight: 'calc(100vh - 32px)',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+              overflow: 'hidden',
+              margin: 'auto',
             }}
           >
-            <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '6px' }}>Buat Paket Soal Baru</h2>
-            <p style={{ color: 'var(--abu-teks)', fontSize: '14px', marginBottom: '20px' }}>
-              Masukkan detail topik pelajaran untuk memulai ruang kerja guru.
-            </p>
-
-            <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: '20px 24px 16px 24px',
+                borderBottom: '1px solid var(--abu-border)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                flexShrink: 0,
+              }}
+            >
               <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>
-                  Apa yang ingin diuji? (Topik Pelajaran)*
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={topik}
-                  onChange={(e) => setTopik(e.target.value)}
-                  placeholder="Contoh: Penjumlahan pecahan berpenyebut beda"
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '10px',
-                    border: '1px solid var(--abu-border)',
-                    fontSize: '15px',
-                  }}
-                />
+                <h2 style={{ fontSize: '20px', fontWeight: 800, margin: 0, color: 'var(--tinta)' }}>
+                  Buat Paket Soal Baru
+                </h2>
+                <p style={{ color: 'var(--abu-teks)', fontSize: '13px', margin: '4px 0 0 0' }}>
+                  Masukkan detail topik pelajaran untuk memulai ruang kerja guru.
+                </p>
               </div>
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  color: 'var(--abu-teks)',
+                  padding: '4px',
+                  lineHeight: 1,
+                }}
+                aria-label="Tutup"
+              >
+                ✕
+              </button>
+            </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>
-                  Judul Paket Soal (Opsional)
-                </label>
-                <input
-                  type="text"
-                  value={judul}
-                  onChange={(e) => setJudul(e.target.value)}
-                  placeholder="Bawaan: sama dengan topik"
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '10px',
-                    border: '1px solid var(--abu-border)',
-                    fontSize: '15px',
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            {/* Scrollable Form Body */}
+            <form
+              onSubmit={handleCreate}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                flex: 1,
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  padding: '20px 24px',
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px',
+                  flex: 1,
+                }}
+              >
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>
-                    Jenjang & Kelas
+                    Apa yang ingin diuji? (Topik Pelajaran)*
                   </label>
-                  <select
-                    value={jenjang}
-                    onChange={(e) => setJenjang(e.target.value)}
+                  <input
+                    type="text"
+                    required
+                    value={topik}
+                    onChange={(e) => setTopik(e.target.value)}
+                    placeholder="Contoh: Penjumlahan pecahan berpenyebut beda"
                     style={{
                       width: '100%',
-                      padding: '10px',
+                      boxSizing: 'border-box',
+                      padding: '10px 14px',
                       borderRadius: '10px',
                       border: '1px solid var(--abu-border)',
                       fontSize: '14px',
                     }}
-                  >
-                    <option value="4 SD">4 SD</option>
-                    <option value="5 SD">5 SD</option>
-                    <option value="6 SD">6 SD</option>
-                    <option value="7 SMP">7 SMP</option>
-                    <option value="8 SMP">8 SMP</option>
-                    <option value="9 SMP">9 SMP</option>
-                    <option value="10 SMA">10 SMA</option>
-                    <option value="11 SMA">11 SMA</option>
-                    <option value="12 SMA">12 SMA</option>
-                  </select>
+                  />
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>
-                    Mata Pelajaran
+                    Judul Paket Soal (Opsional)
                   </label>
-                  <select
-                    value={mapel}
-                    onChange={(e) => setMapel(e.target.value)}
+                  <input
+                    type="text"
+                    value={judul}
+                    onChange={(e) => setJudul(e.target.value)}
+                    placeholder="Bawaan: sama dengan topik"
                     style={{
                       width: '100%',
-                      padding: '10px',
+                      boxSizing: 'border-box',
+                      padding: '10px 14px',
                       borderRadius: '10px',
                       border: '1px solid var(--abu-border)',
                       fontSize: '14px',
                     }}
-                  >
-                    <option value="Matematika">Matematika</option>
-                    <option value="IPA">IPA</option>
-                    <option value="IPS">IPS</option>
-                    <option value="Bahasa Indonesia">Bahasa Indonesia</option>
-                    <option value="Bahasa Inggris">Bahasa Inggris</option>
-                    <option value="Informatika">Informatika</option>
-                    <option value="Pendidikan Pancasila">Pendidikan Pancasila</option>
-                  </select>
+                  />
                 </div>
-              </div>
 
-              {/* Capaian Pembelajaran Kurikulum Merdeka */}
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>
-                  Capaian Pembelajaran (Kurikulum Merdeka)
-                </label>
-                <select
-                  value={selectedCp}
-                  onChange={(e) => setSelectedCp(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    borderRadius: '10px',
-                    border: '1px solid var(--abu-border)',
-                    fontSize: '13px',
-                    background: 'var(--putih)',
-                  }}
-                >
-                  <option value="">-- Pilih Capaian Pembelajaran (Opsional) --</option>
-                  {cpList.map((cp) => (
-                    <option key={cp.kode} value={cp.kode}>
-                      [{cp.kode}] {cp.elemen}: {cp.deskripsi.substring(0, 75)}...
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Toggle Pengaturan Lanjutan */}
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setShowAdvanced(!showAdvanced)}
-                  style={{
-                    background: 'transparent',
-                    color: 'var(--ungu-monster)',
-                    fontSize: '14px',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                  }}
-                >
-                  {showAdvanced ? '▲ Sembunyikan Pengaturan Lanjutan' : '▼ Buka Pengaturan Lanjutan'}
-                </button>
-              </div>
-
-              {showAdvanced && (
-                <div
-                  style={{
-                    background: '#F8FAFC',
-                    padding: '16px',
-                    borderRadius: '12px',
-                    border: '1px solid var(--abu-border)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px',
-                  }}
-                >
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>
-                        Jumlah Soal (5 - 40):
-                      </label>
-                      <input
-                        type="number"
-                        min={5}
-                        max={40}
-                        value={jumlahSoal}
-                        onChange={(e) => setJumlahSoal(parseInt(e.target.value) || 20)}
-                        style={{
-                          width: '100%',
-                          padding: '8px',
-                          borderRadius: '8px',
-                          border: '1px solid var(--abu-border)',
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>
-                        Waktu / Soal (detik):
-                      </label>
-                      <input
-                        type="number"
-                        min={10}
-                        max={60}
-                        value={waktuPerSoal}
-                        onChange={(e) => setWaktuPerSoal(parseInt(e.target.value) || 20)}
-                        style={{
-                          width: '100%',
-                          padding: '8px',
-                          borderRadius: '8px',
-                          border: '1px solid var(--abu-border)',
-                        }}
-                      />
-                    </div>
-                  </div>
-
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>
-                      Komposisi Kesulitan (Mudah: {mudahPct}%, Sedang: {sedangPct}%, Sulit: {sulitPct}%)
-                    </label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-                      <input
-                        type="number"
-                        placeholder="Mudah %"
-                        value={mudahPct}
-                        onChange={(e) => setMudahPct(parseInt(e.target.value) || 0)}
-                        style={{ padding: '6px', borderRadius: '6px', border: '1px solid var(--abu-border)' }}
-                      />
-                      <input
-                        type="number"
-                        placeholder="Sedang %"
-                        value={sedangPct}
-                        onChange={(e) => setSedangPct(parseInt(e.target.value) || 0)}
-                        style={{ padding: '6px', borderRadius: '6px', border: '1px solid var(--abu-border)' }}
-                      />
-                      <input
-                        type="number"
-                        placeholder="Sulit %"
-                        value={sulitPct}
-                        onChange={(e) => setSulitPct(parseInt(e.target.value) || 0)}
-                        style={{ padding: '6px', borderRadius: '6px', border: '1px solid var(--abu-border)' }}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>
-                      Gaya Soal:
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>
+                      Jenjang & Kelas
                     </label>
                     <select
-                      value={gayaSoal}
-                      onChange={(e) => setGayaSoal(e.target.value as GayaSoal)}
-                      style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid var(--abu-border)' }}
+                      value={jenjang}
+                      onChange={(e) => setJenjang(e.target.value)}
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '10px 12px',
+                        borderRadius: '10px',
+                        border: '1px solid var(--abu-border)',
+                        fontSize: '14px',
+                        background: 'var(--putih)',
+                      }}
                     >
-                      <option value="KONTEKS_SEHARI_HARI">Konteks Sehari-hari</option>
-                      <option value="LANGSUNG">Langsung</option>
-                      <option value="CERITA_PENDEK">Cerita Pendek</option>
+                      <option value="4 SD">4 SD</option>
+                      <option value="5 SD">5 SD</option>
+                      <option value="6 SD">6 SD</option>
+                      <option value="7 SMP">7 SMP</option>
+                      <option value="8 SMP">8 SMP</option>
+                      <option value="9 SMP">9 SMP</option>
+                      <option value="10 SMA">10 SMA</option>
+                      <option value="11 SMA">11 SMA</option>
+                      <option value="12 SMA">12 SMA</option>
                     </select>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <input
-                      type="checkbox"
-                      id="mode-miskonsepsi"
-                      checked={modeMiskonsepsi}
-                      onChange={(e) => setModeMiskonsepsi(e.target.checked)}
-                    />
-                    <label htmlFor="mode-miskonsepsi" style={{ fontSize: '13px', fontWeight: 600 }}>
-                      Mode Miskonsepsi (Pilihan salah dibuat dari kekeliruan umum siswa)
-                    </label>
-                  </div>
-
                   <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>
-                      Instruksi Tambahan (Opsional):
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>
+                      Mata Pelajaran
                     </label>
-                    <input
-                      type="text"
-                      value={instruksiTambahan}
-                      onChange={(e) => setInstruksiTambahan(e.target.value)}
-                      placeholder="Contoh: Pakai nama dan tempat lokal di Jawa Barat"
-                      style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid var(--abu-border)' }}
-                    />
+                    <select
+                      value={mapel}
+                      onChange={(e) => setMapel(e.target.value)}
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '10px 12px',
+                        borderRadius: '10px',
+                        border: '1px solid var(--abu-border)',
+                        fontSize: '14px',
+                        background: 'var(--putih)',
+                      }}
+                    >
+                      <option value="Matematika">Matematika</option>
+                      <option value="IPA">IPA</option>
+                      <option value="IPS">IPS</option>
+                      <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                      <option value="Bahasa Inggris">Bahasa Inggris</option>
+                      <option value="Informatika">Informatika</option>
+                      <option value="Pendidikan Pancasila">Pendidikan Pancasila</option>
+                    </select>
                   </div>
                 </div>
-              )}
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '12px' }}>
+                {/* Capaian Pembelajaran Kurikulum Merdeka */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>
+                    Capaian Pembelajaran (Kurikulum Merdeka)
+                  </label>
+                  <select
+                    value={selectedCp}
+                    onChange={(e) => setSelectedCp(e.target.value)}
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      border: '1px solid var(--abu-border)',
+                      fontSize: '13px',
+                      background: 'var(--putih)',
+                    }}
+                  >
+                    <option value="">-- Pilih Capaian Pembelajaran (Opsional) --</option>
+                    {cpList.map((cp) => (
+                      <option key={cp.kode} value={cp.kode}>
+                        [{cp.kode}] {cp.elemen}: {cp.deskripsi.substring(0, 75)}...
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Toggle Pengaturan Lanjutan */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced(!showAdvanced)}
+                    style={{
+                      background: 'transparent',
+                      color: 'var(--ungu-monster)',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: 0,
+                    }}
+                  >
+                    {showAdvanced ? '▲ Sembunyikan Pengaturan Lanjutan' : '▼ Buka Pengaturan Lanjutan'}
+                  </button>
+                </div>
+
+                {showAdvanced && (
+                  <div
+                    style={{
+                      background: '#F8FAFC',
+                      padding: '16px',
+                      borderRadius: '12px',
+                      border: '1px solid var(--abu-border)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '14px',
+                    }}
+                  >
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>
+                          Jumlah Soal (5 - 40):
+                        </label>
+                        <input
+                          type="number"
+                          min={5}
+                          max={40}
+                          value={jumlahSoal}
+                          onChange={(e) => setJumlahSoal(parseInt(e.target.value) || 20)}
+                          style={{
+                            width: '100%',
+                            boxSizing: 'border-box',
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid var(--abu-border)',
+                            fontSize: '13px',
+                            background: 'var(--putih)',
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>
+                          Waktu / Soal (detik):
+                        </label>
+                        <input
+                          type="number"
+                          min={10}
+                          max={60}
+                          value={waktuPerSoal}
+                          onChange={(e) => setWaktuPerSoal(parseInt(e.target.value) || 20)}
+                          style={{
+                            width: '100%',
+                            boxSizing: 'border-box',
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid var(--abu-border)',
+                            fontSize: '13px',
+                            background: 'var(--putih)',
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <label style={{ fontSize: '12px', fontWeight: 700 }}>
+                          Komposisi Kesulitan:
+                        </label>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            color: mudahPct + sedangPct + sulitPct === 100 ? 'var(--hijau-benar)' : '#D97706',
+                          }}
+                        >
+                          Total: {mudahPct + sedangPct + sulitPct}% {mudahPct + sedangPct + sulitPct === 100 ? '✓' : '(Target 100%)'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px' }}>
+                        <div>
+                          <span style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--abu-teks)', marginBottom: '4px' }}>
+                            Mudah (%)
+                          </span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            placeholder="30"
+                            value={mudahPct}
+                            onChange={(e) => setMudahPct(parseInt(e.target.value) || 0)}
+                            style={{
+                              width: '100%',
+                              boxSizing: 'border-box',
+                              padding: '8px 10px',
+                              borderRadius: '8px',
+                              border: '1px solid var(--abu-border)',
+                              fontSize: '13px',
+                              background: 'var(--putih)',
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <span style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--abu-teks)', marginBottom: '4px' }}>
+                            Sedang (%)
+                          </span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            placeholder="50"
+                            value={sedangPct}
+                            onChange={(e) => setSedangPct(parseInt(e.target.value) || 0)}
+                            style={{
+                              width: '100%',
+                              boxSizing: 'border-box',
+                              padding: '8px 10px',
+                              borderRadius: '8px',
+                              border: '1px solid var(--abu-border)',
+                              fontSize: '13px',
+                              background: 'var(--putih)',
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <span style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--abu-teks)', marginBottom: '4px' }}>
+                            Sulit (%)
+                          </span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            placeholder="20"
+                            value={sulitPct}
+                            onChange={(e) => setSulitPct(parseInt(e.target.value) || 0)}
+                            style={{
+                              width: '100%',
+                              boxSizing: 'border-box',
+                              padding: '8px 10px',
+                              borderRadius: '8px',
+                              border: '1px solid var(--abu-border)',
+                              fontSize: '13px',
+                              background: 'var(--putih)',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>
+                        Gaya Soal:
+                      </label>
+                      <select
+                        value={gayaSoal}
+                        onChange={(e) => setGayaSoal(e.target.value as GayaSoal)}
+                        style={{
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid var(--abu-border)',
+                          fontSize: '13px',
+                          background: 'var(--putih)',
+                        }}
+                      >
+                        <option value="KONTEKS_SEHARI_HARI">Konteks Sehari-hari</option>
+                        <option value="LANGSUNG">Langsung</option>
+                        <option value="CERITA_PENDEK">Cerita Pendek</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="mode-miskonsepsi"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          id="mode-miskonsepsi"
+                          checked={modeMiskonsepsi}
+                          onChange={(e) => setModeMiskonsepsi(e.target.checked)}
+                          style={{ width: '16px', height: '16px', accentColor: 'var(--ungu-monster)', cursor: 'pointer' }}
+                        />
+                        <span>Mode Miskonsepsi (Pilihan salah dibuat dari kekeliruan umum siswa)</span>
+                      </label>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>
+                        Instruksi Tambahan (Opsional):
+                      </label>
+                      <input
+                        type="text"
+                        value={instruksiTambahan}
+                        onChange={(e) => setInstruksiTambahan(e.target.value)}
+                        placeholder="Contoh: Pakai nama dan tempat lokal di Jawa Barat"
+                        style={{
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid var(--abu-border)',
+                          fontSize: '13px',
+                          background: 'var(--putih)',
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Fixed Bottom Footer */}
+              <div
+                style={{
+                  padding: '14px 24px',
+                  borderTop: '1px solid var(--abu-border)',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  alignItems: 'center',
+                  gap: '12px',
+                  background: '#F8FAFC',
+                  flexShrink: 0,
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
                   style={{
                     background: 'transparent',
                     color: 'var(--abu-teks)',
-                    padding: '10px 16px',
+                    padding: '8px 16px',
+                    fontSize: '14px',
                     fontWeight: 700,
+                    border: 'none',
+                    cursor: 'pointer',
                   }}
                 >
                   Batal
@@ -631,9 +801,13 @@ export function BerandaStudioSoal({ sets, onOpenSet, onCreateNewSet }: BerandaSt
                   style={{
                     background: 'var(--ungu-monster)',
                     color: 'var(--putih)',
-                    padding: '10px 20px',
+                    padding: '9px 20px',
                     borderRadius: '10px',
+                    fontSize: '14px',
                     fontWeight: 700,
+                    border: 'none',
+                    cursor: creating ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 4px 12px rgba(91, 61, 245, 0.25)',
                   }}
                 >
                   {creating ? 'Membuat...' : 'Mulai Tulis Soal'}
