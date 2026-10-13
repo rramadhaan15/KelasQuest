@@ -6,15 +6,45 @@ import {
   AddManualQuestionInput,
   UpdateQuestionInput,
   PilihanJawaban,
+  ParameterPenjanaan,
 } from './types';
 import { validateQuestion, calculateSetStatus } from './validation';
+import { CurriculumService } from './curriculum-service';
 
 export class StudioSoalService {
-  constructor(private repository: StudioSoalRepository) {}
+  constructor(
+    private repository: StudioSoalRepository,
+    private curriculumService?: CurriculumService
+  ) {}
 
   async createSet(guruId: string, input: CreateSetInput): Promise<PaketSoal> {
     const now = new Date().toISOString();
     const id = `set-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
+    // Default & validate generation parameters if provided
+    let parameterPenjanaan: ParameterPenjanaan | undefined = undefined;
+    if (input.parameterPenjanaan) {
+      const params = input.parameterPenjanaan;
+      const jumlahSoal = params.jumlahSoal !== undefined ? params.jumlahSoal : 20;
+      if (jumlahSoal < 5 || jumlahSoal > 40) {
+        throw new Error('Jumlah soal harus antara 5 sampai 40 butir');
+      }
+
+      const komposisi = params.komposisiKesulitan || { mudah: 30, sedang: 50, sulit: 20 };
+      const totalKomposisi = komposisi.mudah + komposisi.sedang + komposisi.sulit;
+      if (totalKomposisi !== 100) {
+        throw new Error('Total persentase komposisi kesulitan harus tepat 100%');
+      }
+
+      parameterPenjanaan = {
+        jumlahSoal,
+        komposisiKesulitan: komposisi,
+        waktuPerSoalDetik: params.waktuPerSoalDetik || 20,
+        gayaSoal: params.gayaSoal || 'KONTEKS_SEHARI_HARI',
+        modeMiskonsepsi: params.modeMiskonsepsi !== undefined ? params.modeMiskonsepsi : true,
+        instruksiTambahan: params.instruksiTambahan,
+      };
+    }
 
     const paket: PaketSoal = {
       id,
@@ -24,6 +54,7 @@ export class StudioSoalService {
       jenjang: input.jenjang,
       topik: input.topik,
       capaianPembelajaran: input.capaianPembelajaran,
+      parameterPenjanaan,
       status: 'DRAF',
       butirSoal: [],
       dibuatPada: now,

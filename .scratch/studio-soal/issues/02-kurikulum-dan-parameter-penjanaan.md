@@ -4,10 +4,10 @@
 
 **Blocked by:** 01: Fondasi Beranda Studio Soal dan Editor Manual
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Basis data benih internal menyajikan daftar mata pelajaran, fase, dan Capaian Pembelajaran resmi BSKAP dengan waktu respons < 50 ms.
-- [ ] Antarmuka pemilihan CP memungkinkan pencarian dan seleksi kompetensi yang relevan dengan topik.
-- [ ] Form pembuatan paket menyediakan slider kesulitan tiga warna (mudah, sedang, sulit) dengan nilai bawaan 30/50/20.
-- [ ] Pengaturan waktu per butir soal dan instruksi tambahan tersimpan ke parameter paket.
-- [ ] Pengujian memverifikasi pemuatan data kurikulum dan validasi parameter form.
+- [x] Basis data benih internal menyajikan daftar mata pelajaran, fase, dan Capaian Pembelajaran resmi BSKAP dengan waktu respons < 50 ms.
+- [x] Antarmuka pemilihan CP memungkinkan pencarian dan seleksi kompetensi yang relevan dengan topik.
+- [x] Form pembuatan paket menyediakan slider kesulitan tiga warna (mudah, sedang, sulit) dengan nilai bawaan 30/50/20.
+- [x] Pengaturan waktu per butir soal dan instruksi tambahan tersimpan ke parameter paket.
+- [x] Pengujian memverifikasi pemuatan data kurikulum dan validasi parameter form.

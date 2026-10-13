@@ -30,6 +30,23 @@ export interface ButirSoal {
   diperbaruiPada: string;
 }
 
+export type GayaSoal = 'LANGSUNG' | 'KONTEKS_SEHARI_HARI' | 'CERITA_PENDEK';
+
+export interface KomposisiKesulitan {
+  mudah: number;
+  sedang: number;
+  sulit: number;
+}
+
+export interface ParameterPenjanaan {
+  jumlahSoal: number;
+  komposisiKesulitan: KomposisiKesulitan;
+  waktuPerSoalDetik: number;
+  gayaSoal: GayaSoal;
+  modeMiskonsepsi: boolean;
+  instruksiTambahan?: string;
+}
+
 export interface PaketSoal {
   id: string;
   guruId: string;
@@ -38,6 +55,7 @@ export interface PaketSoal {
   jenjang: string;
   topik: string;
   capaianPembelajaran?: string;
+  parameterPenjanaan?: ParameterPenjanaan;
   status: StatusKesiapanPaket;
   butirSoal: ButirSoal[];
   dibuatPada: string;
@@ -50,6 +68,7 @@ export interface CreateSetInput {
   jenjang: string;
   topik: string;
   capaianPembelajaran?: string;
+  parameterPenjanaan?: Partial<ParameterPenjanaan>;
 }
 
 export interface AddManualQuestionInput {

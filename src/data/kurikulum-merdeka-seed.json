@@ -1,0 +1,60 @@
+{
+  "faseMapping": {
+    "1 SD": "Fase A",
+    "2 SD": "Fase A",
+    "3 SD": "Fase B",
+    "4 SD": "Fase B",
+    "5 SD": "Fase C",
+    "6 SD": "Fase C",
+    "7 SMP": "Fase D",
+    "8 SMP": "Fase D",
+    "9 SMP": "Fase D",
+    "10 SMA": "Fase E",
+    "11 SMA": "Fase F",
+    "12 SMA": "Fase F"
+  },
+  "capaianPembelajaran": [
+    {
+      "kode": "CP-MAT-C-01",
+      "mapel": "Matematika",
+      "fase": "Fase C",
+      "elemen": "Bilangan",
+      "deskripsi": "Peserta didik dapat membandingkan dan mengurutkan berbagai pecahan termasuk pecahan campuran, serta melakukan operasi penjumlahan dan pengurangan pecahan berpenyebut sama dan berbeda."
+    },
+    {
+      "kode": "CP-MAT-C-02",
+      "mapel": "Matematika",
+      "fase": "Fase C",
+      "elemen": "Pengukuran",
+      "deskripsi": "Peserta didik dapat menentukan keliling dan luas berbagai bentuk bangun datar (segitiga, segiempat, dan segibanyak) serta gabungannya."
+    },
+    {
+      "kode": "CP-IPA-D-01",
+      "mapel": "IPA",
+      "fase": "Fase D",
+      "elemen": "Pemahaman IPA",
+      "deskripsi": "Peserta didik dapat mengidentifikasi sistem organisasi kehidupan, proses fotosintesis, respirasi seluler, dan interaksi antar makhluk hidup dalam ekosistem."
+    },
+    {
+      "kode": "CP-IPA-D-02",
+      "mapel": "IPA",
+      "fase": "Fase D",
+      "elemen": "Zat dan Perubahannya",
+      "deskripsi": "Peserta didik dapat membedakan sifat fisika dan kimia suatu zat, perubahan wujud, serta pemisahan campuran sederhana."
+    },
+    {
+      "kode": "CP-BIN-B-01",
+      "mapel": "Bahasa Indonesia",
+      "fase": "Fase B",
+      "elemen": "Membaca dan Memirsa",
+      "deskripsi": "Peserta didik mampu memahami ide pokok dan ide pendukung pada teks informatif serta menjelaskan makna kosakata baru."
+    },
+    {
+      "kode": "CP-SEJ-F-01",
+      "mapel": "Sejarah",
+      "fase": "Fase F",
+      "elemen": "Keterampilan Konsep Sejarah",
+      "deskripsi": "Peserta didik mampu menganalisis peristiwa sekitar proklamasi kemerdekaan Indonesia, pembentukan pemerintahan awal, dan perjuangan mempertahankan kemerdekaan."
+    }
+  ]
+}

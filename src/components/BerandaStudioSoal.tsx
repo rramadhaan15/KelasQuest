@@ -1,12 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
-import { PaketSoal } from '../domain/types';
+import React, { useState, useEffect } from 'react';
+import { PaketSoal, GayaSoal, ParameterPenjanaan } from '../domain/types';
+import { CurriculumService, CapaianItem } from '../domain/curriculum-service';
+
+const curriculumService = new CurriculumService();
 
 interface BerandaStudioSoalProps {
   sets: PaketSoal[];
   onOpenSet: (set: PaketSoal) => void;
-  onCreateNewSet: (data: { judul: string; mapel: string; jenjang: string; topik: string }) => Promise<void>;
+  onCreateNewSet: (data: {
+    judul: string;
+    mapel: string;
+    jenjang: string;
+    topik: string;
+    capaianPembelajaran?: string;
+    parameterPenjanaan?: Partial<ParameterPenjanaan>;
+  }) => Promise<void>;
 }
 
 export function BerandaStudioSoal({ sets, onOpenSet, onCreateNewSet }: BerandaStudioSoalProps) {
@@ -18,7 +28,31 @@ export function BerandaStudioSoal({ sets, onOpenSet, onCreateNewSet }: BerandaSt
   const [mapel, setMapel] = useState('Matematika');
   const [jenjang, setJenjang] = useState('5 SD');
   const [topik, setTopik] = useState('');
+  const [selectedCp, setSelectedCp] = useState<string>('');
+  const [cpList, setCpList] = useState<CapaianItem[]>([]);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Advanced parameters
+  const [jumlahSoal, setJumlahSoal] = useState(20);
+  const [mudahPct, setMudahPct] = useState(30);
+  const [sedangPct, setSedangPct] = useState(50);
+  const [sulitPct, setSulitPct] = useState(20);
+  const [waktuPerSoal, setWaktuPerSoal] = useState(20);
+  const [gayaSoal, setGayaSoal] = useState<GayaSoal>('KONTEKS_SEHARI_HARI');
+  const [modeMiskonsepsi, setModeMiskonsepsi] = useState(true);
+  const [instruksiTambahan, setInstruksiTambahan] = useState('');
   const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    curriculumService.getCurriculum(mapel, jenjang).then((res) => {
+      setCpList(res.capaianList);
+      if (res.capaianList.length > 0) {
+        setSelectedCp(res.capaianList[0].kode);
+      } else {
+        setSelectedCp('');
+      }
+    });
+  }, [mapel, jenjang]);
 
   const filteredSets = sets.filter(
     (s) =>
@@ -37,10 +71,20 @@ export function BerandaStudioSoal({ sets, onOpenSet, onCreateNewSet }: BerandaSt
         mapel,
         jenjang,
         topik,
+        capaianPembelajaran: selectedCp || undefined,
+        parameterPenjanaan: {
+          jumlahSoal,
+          komposisiKesulitan: { mudah: mudahPct, sedang: sedangPct, sulit: sulitPct },
+          waktuPerSoalDetik: waktuPerSoal,
+          gayaSoal,
+          modeMiskonsepsi,
+          instruksiTambahan: instruksiTambahan.trim() || undefined,
+        },
       });
       setShowModal(false);
       setJudul('');
       setTopik('');
+      setShowAdvanced(false);
     } finally {
       setCreating(false);
     }
@@ -400,6 +444,173 @@ export function BerandaStudioSoal({ sets, onOpenSet, onCreateNewSet }: BerandaSt
                   </select>
                 </div>
               </div>
+
+              {/* Capaian Pembelajaran Kurikulum Merdeka */}
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>
+                  Capaian Pembelajaran (Kurikulum Merdeka)
+                </label>
+                <select
+                  value={selectedCp}
+                  onChange={(e) => setSelectedCp(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '10px',
+                    border: '1px solid var(--abu-border)',
+                    fontSize: '13px',
+                    background: 'var(--putih)',
+                  }}
+                >
+                  <option value="">-- Pilih Capaian Pembelajaran (Opsional) --</option>
+                  {cpList.map((cp) => (
+                    <option key={cp.kode} value={cp.kode}>
+                      [{cp.kode}] {cp.elemen}: {cp.deskripsi.substring(0, 75)}...
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Toggle Pengaturan Lanjutan */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  style={{
+                    background: 'transparent',
+                    color: 'var(--ungu-monster)',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  {showAdvanced ? '▲ Sembunyikan Pengaturan Lanjutan' : '▼ Buka Pengaturan Lanjutan'}
+                </button>
+              </div>
+
+              {showAdvanced && (
+                <div
+                  style={{
+                    background: '#F8FAFC',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--abu-border)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                  }}
+                >
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>
+                        Jumlah Soal (5 - 40):
+                      </label>
+                      <input
+                        type="number"
+                        min={5}
+                        max={40}
+                        value={jumlahSoal}
+                        onChange={(e) => setJumlahSoal(parseInt(e.target.value) || 20)}
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '8px',
+                          border: '1px solid var(--abu-border)',
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>
+                        Waktu / Soal (detik):
+                      </label>
+                      <input
+                        type="number"
+                        min={10}
+                        max={60}
+                        value={waktuPerSoal}
+                        onChange={(e) => setWaktuPerSoal(parseInt(e.target.value) || 20)}
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '8px',
+                          border: '1px solid var(--abu-border)',
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>
+                      Komposisi Kesulitan (Mudah: {mudahPct}%, Sedang: {sedangPct}%, Sulit: {sulitPct}%)
+                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                      <input
+                        type="number"
+                        placeholder="Mudah %"
+                        value={mudahPct}
+                        onChange={(e) => setMudahPct(parseInt(e.target.value) || 0)}
+                        style={{ padding: '6px', borderRadius: '6px', border: '1px solid var(--abu-border)' }}
+                      />
+                      <input
+                        type="number"
+                        placeholder="Sedang %"
+                        value={sedangPct}
+                        onChange={(e) => setSedangPct(parseInt(e.target.value) || 0)}
+                        style={{ padding: '6px', borderRadius: '6px', border: '1px solid var(--abu-border)' }}
+                      />
+                      <input
+                        type="number"
+                        placeholder="Sulit %"
+                        value={sulitPct}
+                        onChange={(e) => setSulitPct(parseInt(e.target.value) || 0)}
+                        style={{ padding: '6px', borderRadius: '6px', border: '1px solid var(--abu-border)' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>
+                      Gaya Soal:
+                    </label>
+                    <select
+                      value={gayaSoal}
+                      onChange={(e) => setGayaSoal(e.target.value as GayaSoal)}
+                      style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid var(--abu-border)' }}
+                    >
+                      <option value="KONTEKS_SEHARI_HARI">Konteks Sehari-hari</option>
+                      <option value="LANGSUNG">Langsung</option>
+                      <option value="CERITA_PENDEK">Cerita Pendek</option>
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="checkbox"
+                      id="mode-miskonsepsi"
+                      checked={modeMiskonsepsi}
+                      onChange={(e) => setModeMiskonsepsi(e.target.checked)}
+                    />
+                    <label htmlFor="mode-miskonsepsi" style={{ fontSize: '13px', fontWeight: 600 }}>
+                      Mode Miskonsepsi (Pilihan salah dibuat dari kekeliruan umum siswa)
+                    </label>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>
+                      Instruksi Tambahan (Opsional):
+                    </label>
+                    <input
+                      type="text"
+                      value={instruksiTambahan}
+                      onChange={(e) => setInstruksiTambahan(e.target.value)}
+                      placeholder="Contoh: Pakai nama dan tempat lokal di Jawa Barat"
+                      style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid var(--abu-border)' }}
+                    />
+                  </div>
+                </div>
+              )}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '12px' }}>
                 <button
