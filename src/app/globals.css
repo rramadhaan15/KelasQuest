@@ -1,0 +1,43 @@
+:root {
+  --ungu-monster: #5B3DF5;
+  --ungu-monster-hover: #482ee0;
+  --api-serangan: #FF6B35;
+  --hijau-benar: #17A05A;
+  --hijau-bg: #E8F7F0;
+  --merah-salah: #E0443A;
+  --merah-bg: #FDEEED;
+  --langit: #E9F3FF;
+  --tinta: #16204A;
+  --abu-bg: #F8FAFC;
+  --abu-border: #E2E8F0;
+  --abu-teks: #64748B;
+  --putih: #FFFFFF;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--tinta);
+  background-color: var(--langit);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4, .btn-brand {
+  font-family: 'Baloo 2', 'Nunito', sans-serif;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+
+input, select, textarea {
+  font-family: inherit;
+}

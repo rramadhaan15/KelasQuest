@@ -4,10 +4,10 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Guru dapat melihat daftar paket soal dan statusnya (Draf / Siap Main) di Beranda Studio Soal.
-- [ ] Guru dapat membuat draf Paket Soal baru dengan mengisi topik, jenjang kelas, dan mata pelajaran.
-- [ ] Guru dapat menambahkan dan menyunting butir soal manual dengan pilihan jawaban dan pembahasan.
-- [ ] Sistem menandai butir soal tidak valid (teks kosong, belum ada jawaban benar) secara langsung.
-- [ ] Pengujian perilaku (integration tests) memverifikasi persistensi paket dan validasi butir soal manual.
+- [x] Guru dapat melihat daftar paket soal dan statusnya (Draf / Siap Main) di Beranda Studio Soal.
+- [x] Guru dapat membuat draf Paket Soal baru dengan mengisi topik, jenjang kelas, dan mata pelajaran.
+- [x] Guru dapat menambahkan dan menyunting butir soal manual dengan pilihan jawaban dan pembahasan.
+- [x] Sistem menandai butir soal tidak valid (teks kosong, belum ada jawaban benar) secara langsung.
+- [x] Pengujian perilaku (integration tests) memverifikasi persistensi paket dan validasi butir soal manual.
