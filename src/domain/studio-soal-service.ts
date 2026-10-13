@@ -10,11 +10,13 @@ import {
 } from './types';
 import { validateQuestion, calculateSetStatus } from './validation';
 import { CurriculumService } from './curriculum-service';
+import { AIQuestionGenerator, GenerationContext } from './ai-generator-interface';
 
 export class StudioSoalService {
   constructor(
     private repository: StudioSoalRepository,
-    private curriculumService?: CurriculumService
+    private curriculumService?: CurriculumService,
+    private aiGenerator?: AIQuestionGenerator
   ) {}
 
   async createSet(guruId: string, input: CreateSetInput): Promise<PaketSoal> {
@@ -181,4 +183,101 @@ export class StudioSoalService {
 
     return updatedQuestion;
   }
+
+  async streamGenerateQuestions(
+    setId: string,
+    onQuestionSaved?: (q: ButirSoal) => void | Promise<void>,
+    signal?: AbortSignal
+  ): Promise<{ totalGenerated: number; questions: ButirSoal[] }> {
+    const paket = await this.repository.getSet(setId);
+    if (!paket) {
+      throw new Error(`Paket Soal dengan id ${setId} tidak ditemukan`);
+    }
+
+    if (!this.aiGenerator) {
+      throw new Error('AI Generator belum dikonfigurasikan');
+    }
+
+    const context: GenerationContext = {
+      mapel: paket.mapel,
+      jenjang: paket.jenjang,
+      topik: paket.topik,
+      capaianPembelajaran: paket.capaianPembelajaran,
+      jumlahSoal: paket.parameterPenjanaan?.jumlahSoal || 20,
+      modeMiskonsepsi: paket.parameterPenjanaan?.modeMiskonsepsi ?? true,
+      gayaSoal: paket.parameterPenjanaan?.gayaSoal,
+      instruksiTambahan: paket.parameterPenjanaan?.instruksiTambahan,
+    };
+
+    const generatedList: ButirSoal[] = [];
+    const existing = await this.repository.listQuestionsBySet(setId);
+    let currentUrutan = existing.length;
+
+    try {
+      for await (const draft of this.aiGenerator.generateQuestionStream(context, signal)) {
+        if (signal?.aborted) {
+          const err = new Error('Generation aborted');
+          err.name = 'AbortError';
+          throw err;
+        }
+
+        currentUrutan++;
+        const now = new Date().toISOString();
+        const questionId = `q-ai-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
+        const pilihanJawaban: PilihanJawaban[] = draft.pilihanJawaban.map((p, idx) => ({
+          id: `opt-${idx + 1}-${Math.random().toString(36).substring(2, 6)}`,
+          teks: p.teks,
+          benar: p.benar,
+          labelMiskonsepsi: p.labelMiskonsepsi,
+        }));
+
+        const validation = validateQuestion(draft.teks, pilihanJawaban);
+
+        const butirSoal: ButirSoal = {
+          id: questionId,
+          paketId: setId,
+          urutan: currentUrutan,
+          teks: draft.teks,
+          kesulitan: draft.kesulitan,
+          subtopik: draft.subtopik,
+          pembahasan: draft.pembahasan,
+          waktuDetik: draft.waktuDetik,
+          sumber: 'AI',
+          statusTinjauan: 'BELUM_DITINJAU', // Soal AI selalu mulai dari Belum Ditinjau
+          pilihanJawaban,
+          isValid: validation.isValid,
+          validasiGalat: validation.errors,
+          diperbaruiPada: now,
+        };
+
+        // Simpan langsung secara atomik ke database sebelum memanggil callback (ADR 0002)
+        await this.repository.saveQuestion(butirSoal);
+        generatedList.push(butirSoal);
+
+        // Perbarui status paket
+        const allQuestions = await this.repository.listQuestionsBySet(setId);
+        paket.status = calculateSetStatus(allQuestions);
+        paket.diperbaruiPada = now;
+        await this.repository.saveSet(paket);
+
+        if (onQuestionSaved) {
+          await onQuestionSaved(butirSoal);
+        }
+      }
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        const currentSaved = await this.repository.listQuestionsBySet(setId);
+        paket.status = calculateSetStatus(currentSaved);
+        await this.repository.saveSet(paket);
+      }
+      throw err;
+    }
+
+    return {
+      totalGenerated: generatedList.length,
+      questions: generatedList,
+    };
+  }
 }
+

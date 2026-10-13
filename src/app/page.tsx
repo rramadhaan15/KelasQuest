@@ -8,8 +8,13 @@ import { BerandaStudioSoal } from '../components/BerandaStudioSoal';
 import { EditorPaketSoal } from '../components/EditorPaketSoal';
 
 // Initial repository & service instance
+import { CurriculumService } from '../domain/curriculum-service';
+import { MockAIQuestionGenerator } from '../adapters/mock-ai-generator';
+
 const repository = new InMemoryStudioSoalRepository();
-const service = new StudioSoalService(repository);
+const curriculumService = new CurriculumService();
+const aiGenerator = new MockAIQuestionGenerator();
+const service = new StudioSoalService(repository, curriculumService, aiGenerator);
 
 export default function StudioSoalPage() {
   const [sets, setSets] = useState<PaketSoal[]>([]);
@@ -29,6 +34,8 @@ export default function StudioSoalPage() {
     mapel: string;
     jenjang: string;
     topik: string;
+    capaianPembelajaran?: string;
+    parameterPenjanaan?: any;
   }) => {
     const created = await service.createSet('guru-demo', data);
     await refreshSets();
@@ -48,6 +55,22 @@ export default function StudioSoalPage() {
     await refreshSets();
   };
 
+  const handleGenerateAI = async (
+    paketId: string,
+    onProgress: (q: ButirSoal) => void,
+    signal?: AbortSignal
+  ) => {
+    await service.streamGenerateQuestions(
+      paketId,
+      async (soal) => {
+        onProgress(soal);
+        await refreshSets();
+      },
+      signal
+    );
+    await refreshSets();
+  };
+
   return (
     <main>
       {activeSet ? (
@@ -55,6 +78,7 @@ export default function StudioSoalPage() {
           paket={activeSet}
           onBack={() => setActiveSet(null)}
           onSaveQuestion={handleSaveQuestion}
+          onGenerateAI={handleGenerateAI}
         />
       ) : (
         <BerandaStudioSoal

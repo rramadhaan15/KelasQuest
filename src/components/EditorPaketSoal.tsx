@@ -8,12 +8,17 @@ interface EditorPaketSoalProps {
   paket: PaketSoal;
   onBack: () => void;
   onSaveQuestion: (paketId: string, questionData: any, existingId?: string) => Promise<void>;
+  onGenerateAI?: (paketId: string, onProgress: (q: ButirSoal) => void, signal?: AbortSignal) => Promise<void>;
 }
 
-export function EditorPaketSoal({ paket, onBack, onSaveQuestion }: EditorPaketSoalProps) {
+export function EditorPaketSoal({ paket, onBack, onSaveQuestion, onGenerateAI }: EditorPaketSoalProps) {
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(
     paket.butirSoal.length > 0 ? paket.butirSoal[0].id : 'new'
   );
+
+  const [generatingAI, setGeneratingAI] = useState(false);
+  const [generateProgress, setGenerateProgress] = useState(0);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   const activeQuestion =
     activeQuestionId === 'new'
@@ -40,6 +45,39 @@ export function EditorPaketSoal({ paket, onBack, onSaveQuestion }: EditorPaketSo
         ]
   );
   const [saving, setSaving] = useState(false);
+
+  const handleStartAIGeneration = async () => {
+    if (!onGenerateAI) return;
+    const ac = new AbortController();
+    setAbortController(ac);
+    setGeneratingAI(true);
+    setGenerateProgress(paket.butirSoal.length);
+    try {
+      await onGenerateAI(
+        paket.id,
+        (q) => {
+          setGenerateProgress((prev) => prev + 1);
+          if (!activeQuestionId || activeQuestionId === 'new') {
+            setActiveQuestionId(q.id);
+          }
+        },
+        ac.signal
+      );
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        console.error(err);
+      }
+    } finally {
+      setGeneratingAI(false);
+      setAbortController(null);
+    }
+  };
+
+  const handleCancelAIGeneration = () => {
+    if (abortController) {
+      abortController.abort();
+    }
+  };
 
   // Switch active question
   const selectQuestion = (q: ButirSoal | null) => {
@@ -234,9 +272,76 @@ export function EditorPaketSoal({ paket, onBack, onSaveQuestion }: EditorPaketSo
                 fontWeight: 700,
               }}
             >
-              + Tambah Soal
+              + Tambah Manual
             </button>
           </div>
+
+          {/* AI Generator Action & Streaming Banner */}
+          {generatingAI ? (
+            <div
+              style={{
+                background: '#FFF7ED',
+                border: '1px solid #FDBA74',
+                borderRadius: '10px',
+                padding: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#C2410C' }}>
+                  👾 AI Sedang Menyusun Soal...
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCancelAIGeneration}
+                  style={{
+                    background: 'var(--merah-bg)',
+                    color: 'var(--merah-salah)',
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                  }}
+                >
+                  Batalkan
+                </button>
+              </div>
+              <div style={{ fontSize: '12px', color: '#9A3412' }}>
+                {generateProgress} / {paket.parameterPenjanaan?.jumlahSoal || 20} soal tersimpan di server
+              </div>
+              <div style={{ height: '5px', background: '#FED7AA', borderRadius: '3px', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    height: '100%',
+                    width: `${Math.min(100, (generateProgress / (paket.parameterPenjanaan?.jumlahSoal || 20)) * 100)}%`,
+                    background: 'var(--api-serangan)',
+                    transition: 'width 0.2s ease',
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={handleStartAIGeneration}
+              style={{
+                background: 'linear-gradient(135deg, var(--api-serangan), #E0443A)',
+                color: 'var(--putih)',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                fontSize: '13px',
+                fontWeight: 800,
+                boxShadow: '0 4px 10px rgba(255, 107, 53, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+              }}
+            >
+              ✨ Buat {paket.parameterPenjanaan?.jumlahSoal || 20} Soal dengan AI
+            </button>
+          )}
 
           {paket.butirSoal.length === 0 ? (
             <div

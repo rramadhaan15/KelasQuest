@@ -4,10 +4,10 @@
 
 **Blocked by:** 01: Fondasi Beranda Studio Soal dan Editor Manual, 02: Pustaka Capaian Pembelajaran (CP) dan Form Parameter Penjanaan
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Adapter AI menghasilkan butir soal terstruktur lengkap dengan pembahasan dan Label Miskonsepsi pada pilihan salah.
-- [ ] Pipeline di peladen menyimpan setiap butir soal yang lolos validasi otomatis secara langsung ke basis data per butir soal (ADR 0002).
-- [ ] Kartu soal dialirkan ke antarmuka guru melalui koneksi streaming/realtime dengan penanda kemajuan.
-- [ ] Jika koneksi jaringan pengguna terputus saat proses berjalan, butir soal yang telah tersimpan di peladen tidak hilang.
-- [ ] Pengujian memverifikasi ketahanan persistensi inkremental dan struktur keluaran butir soal.
+- [x] Adapter AI menghasilkan butir soal terstruktur lengkap dengan pembahasan dan Label Miskonsepsi pada pilihan salah.
+- [x] Pipeline di peladen menyimpan setiap butir soal yang lolos validasi otomatis secara langsung ke basis data per butir soal (ADR 0002).
+- [x] Kartu soal dialirkan ke antarmuka guru melalui koneksi streaming/realtime dengan penanda kemajuan.
+- [x] Jika koneksi jaringan pengguna terputus saat proses berjalan, butir soal yang telah tersimpan di peladen tidak hilang.
+- [x] Pengujian memverifikasi ketahanan persistensi inkremental dan struktur keluaran butir soal.
