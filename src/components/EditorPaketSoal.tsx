@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { PaketSoal, ButirSoal, TingkatKesulitan } from '../domain/types';
+import { PaketSoal, ButirSoal, TingkatKesulitan, SnapshotSesi } from '../domain/types';
 import { validateQuestion } from '../domain/validation';
 import { createStudentPreviewSession, StudentPreviewSession } from '../domain/preview-simulator';
 import { parseRawQuestions, convertParsedToManualInput } from '../domain/text-parser';
@@ -16,6 +16,11 @@ interface EditorPaketSoalProps {
   onRegenerateQuestion?: (questionId: string, direction: string) => Promise<void>;
   onDeleteQuestion?: (questionId: string) => Promise<void>;
   onImportRawText?: (paketId: string, rawText: string) => Promise<void>;
+  onLaunchSession?: (paketId: string, config?: any) => Promise<SnapshotSesi>;
+  onStartBattle?: (sessionId: string) => Promise<SnapshotSesi>;
+  onVoidQuestion?: (sessionId: string, questionId: string, reason?: string) => Promise<any>;
+  onGetSession?: (sessionId: string) => Promise<SnapshotSesi | null>;
+  onSwitchToStudent?: (pin: string) => void;
   teacherQuota?: { remainingQuota: number; totalDailyQuota: number } | null;
 }
 
@@ -29,6 +34,11 @@ export function EditorPaketSoal({
   onRegenerateQuestion,
   onDeleteQuestion,
   onImportRawText,
+  onLaunchSession,
+  onStartBattle,
+  onVoidQuestion,
+  onGetSession,
+  onSwitchToStudent,
   teacherQuota,
 }: EditorPaketSoalProps) {
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(
@@ -74,6 +84,66 @@ export function EditorPaketSoal({
         setHasCustomKey(false);
       }
       setShowApiKeyModal(false);
+    }
+  };
+
+  // Session Launch & Teacher Lobby states
+  const [showLaunchModal, setShowLaunchModal] = useState(false);
+  const [activeSession, setActiveSession] = useState<SnapshotSesi | null>(null);
+  const [launching, setLaunching] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  React.useEffect(() => {
+    if (!showLaunchModal || !activeSession || !onGetSession) return;
+    const interval = setInterval(async () => {
+      try {
+        const latest = await onGetSession(activeSession.id);
+        if (latest) {
+          setActiveSession({ ...latest });
+        }
+      } catch (e) {
+        // ignore polling errors
+      }
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [showLaunchModal, activeSession?.id, onGetSession]);
+
+  const handleLaunchSession = async () => {
+    if (!onLaunchSession) return;
+    setLaunching(true);
+    try {
+      const sess = await onLaunchSession(paket.id, {
+        namaBoss: `Monster ${paket.topik}`,
+      });
+      setActiveSession(sess);
+      setShowLaunchModal(true);
+    } catch (err: any) {
+      alert(err.message || 'Gagal meluncurkan sesi');
+    } finally {
+      setLaunching(false);
+    }
+  };
+
+  const handleStartBattle = async () => {
+    if (!activeSession || !onStartBattle) return;
+    try {
+      const started = await onStartBattle(activeSession.id);
+      setActiveSession({ ...started });
+    } catch (err: any) {
+      alert(err.message || 'Gagal memulai pertarungan');
+    }
+  };
+
+  const handleVoidQuestion = async (qId: string) => {
+    if (!activeSession || !onVoidQuestion) return;
+    const reason = prompt('Masukkan alasan pembatalan/anulir soal (ADR 0007):', 'Kekeliruan teks atau kunci jawaban');
+    if (reason === null) return;
+    try {
+      const res = await onVoidQuestion(activeSession.id, qId, reason);
+      alert(`Butir soal berhasil dianulir! Kerusakan sebesar ${res.damageAwarded} HP telah otomatis diberikan kepada monster.`);
+      setActiveSession((prev) => prev ? { ...prev, monsterHp: res.remainingMonsterHp } : null);
+    } catch (err: any) {
+      alert(err.message || 'Gagal menganulir soal');
     }
   };
 
@@ -371,6 +441,30 @@ export function EditorPaketSoal({
               }}
             >
               🎮 Main sebagai Siswa
+            </button>
+          )}
+
+          {paket.butirSoal.length > 0 && onLaunchSession && (
+            <button
+              type="button"
+              onClick={handleLaunchSession}
+              disabled={launching}
+              style={{
+                background: 'linear-gradient(135deg, var(--api-serangan), #E0443A)',
+                color: 'var(--putih)',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '10px',
+                fontSize: '13px',
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)',
+                cursor: launching ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {launching ? 'Meluncurkan...' : '🚀 Luncurkan Boss Battle'}
             </button>
           )}
         </div>
@@ -1480,6 +1574,439 @@ export function EditorPaketSoal({
               >
                 Simpan & Terapkan
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Teacher Lobby & Projector Modal (ADR 0004 & ADR 0007) */}
+      {showLaunchModal && activeSession && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(10, 15, 30, 0.85)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 120,
+            padding: '20px',
+          }}
+        >
+          <div
+            style={{
+              background: '#0F172A',
+              color: '#F8FAFC',
+              borderRadius: '24px',
+              maxWidth: '840px',
+              width: '100%',
+              maxHeight: '92vh',
+              overflowY: 'auto',
+              border: '2px solid #334155',
+              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.7)',
+              padding: '28px 32px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '24px',
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '24px' }}>🏰</span>
+                  <h2 style={{ fontSize: '22px', fontWeight: 900, color: '#F1F5F9', margin: 0 }}>
+                    Konsol Proyektor Guru: Boss Battle
+                  </h2>
+                </div>
+                <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#94A3B8' }}>
+                  Tampilkan layar ini di proyektor kelas atau bagikan PIN / Link ke siswa
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    letterSpacing: '0.05em',
+                    background:
+                      activeSession.status === 'BERLANGSUNG'
+                        ? 'rgba(239, 68, 68, 0.2)'
+                        : activeSession.status === 'SELESAI'
+                        ? 'rgba(16, 185, 129, 0.2)'
+                        : 'rgba(99, 102, 241, 0.2)',
+                    color:
+                      activeSession.status === 'BERLANGSUNG'
+                        ? '#F87171'
+                        : activeSession.status === 'SELESAI'
+                        ? '#34D399'
+                        : '#818CF8',
+                    border: `1px solid ${
+                      activeSession.status === 'BERLANGSUNG'
+                        ? '#EF4444'
+                        : activeSession.status === 'SELESAI'
+                        ? '#10B981'
+                        : '#6366F1'
+                    }`,
+                  }}
+                >
+                  {activeSession.status === 'LOBI'
+                    ? '🟡 MENUNGGU SISWA'
+                    : activeSession.status === 'BERLANGSUNG'
+                    ? '🔴 PERTEMPURAN AKTIF'
+                    : '🟢 SELESAI'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowLaunchModal(false)}
+                  style={{
+                    background: '#1E293B',
+                    border: '1px solid #334155',
+                    color: '#94A3B8',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  ✕ Tutup
+                </button>
+              </div>
+            </div>
+
+            {/* Giant PIN & Link Banner */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #1E1B4B 0%, #0F172A 100%)',
+                border: '2px solid #4338CA',
+                borderRadius: '20px',
+                padding: '24px',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '14px',
+              }}
+            >
+              <div style={{ fontSize: '13px', fontWeight: 800, color: '#A5B4FC', letterSpacing: '0.1em' }}>
+                PIN RUANG KELAS (SISWA MASUK TANPA LOGIN)
+              </div>
+
+              {/* Giant PIN Digits */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '8px',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                {activeSession.pinKelas.split('').map((char, i) => (
+                  <span
+                    key={i}
+                    style={{
+                      background: '#1E293B',
+                      border: '2px solid #6366F1',
+                      borderRadius: '12px',
+                      padding: '10px 16px',
+                      fontSize: '36px',
+                      fontWeight: 900,
+                      color: '#FFFFFF',
+                      letterSpacing: '2px',
+                      boxShadow: '0 8px 16px rgba(99, 102, 241, 0.3)',
+                    }}
+                  >
+                    {char}
+                  </span>
+                ))}
+              </div>
+
+              {/* Quick Actions (Copy Link & Direct Switch) */}
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '4px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+                    const link = `${origin}/play?pin=${activeSession.pinKelas}`;
+                    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                      navigator.clipboard.writeText(link);
+                      setCopiedLink(true);
+                      setTimeout(() => setCopiedLink(false), 2500);
+                    }
+                  }}
+                  style={{
+                    background: copiedLink ? '#059669' : '#3B82F6',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '10px 18px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                  }}
+                >
+                  {copiedLink ? '✓ Link Siswa Disalin!' : '📋 Salin Link Akses Siswa'}
+                </button>
+
+                {onSwitchToStudent && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowLaunchModal(false);
+                      onSwitchToStudent(activeSession.pinKelas);
+                    }}
+                    style={{
+                      background: '#4F46E5',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '10px 18px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
+                    }}
+                  >
+                    🎮 Buka Tampilan Siswa (Uji Sendiri)
+                  </button>
+                )}
+              </div>
+
+              <div style={{ fontSize: '12px', color: '#94A3B8' }}>
+                🔗 URL Siswa: <code style={{ color: '#38BDF8' }}>{typeof window !== 'undefined' ? window.location.origin : ''}/play?pin={activeSession.pinKelas}</code>
+              </div>
+            </div>
+
+            {/* Boss Status & Participants Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              {/* Boss Info Card */}
+              <div
+                style={{
+                  background: '#1E293B',
+                  borderRadius: '16px',
+                  border: '1px solid #334155',
+                  padding: '18px 20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '32px' }}>👹</span>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: '16px', color: '#F8FAFC' }}>
+                        {activeSession.config?.namaBoss || `Monster ${paket.topik}`}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#94A3B8' }}>
+                        {activeSession.butirSoal.length} Soal • Terkunci Snapshot
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Live Monster HP Bar */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 800, marginBottom: '6px' }}>
+                    <span style={{ color: '#F87171' }}>HP Monster</span>
+                    <span style={{ color: '#F8FAFC' }}>{activeSession.monsterHp ?? 1000} HP</span>
+                  </div>
+                  <div
+                    style={{
+                      height: '14px',
+                      background: '#0F172A',
+                      borderRadius: '7px',
+                      overflow: 'hidden',
+                      border: '1px solid #475569',
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${Math.min(100, Math.max(0, ((activeSession.monsterHp ?? 1000) / (activeSession.peserta.length > 0 ? activeSession.peserta.length * activeSession.butirSoal.length * 100 : 1000)) * 100))}%`,
+                        background: 'linear-gradient(90deg, #EF4444 0%, #DC2626 100%)',
+                        transition: 'width 0.4s ease',
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Connected Students Card */}
+              <div
+                style={{
+                  background: '#1E293B',
+                  borderRadius: '16px',
+                  border: '1px solid #334155',
+                  padding: '18px 20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: 800, fontSize: '15px', color: '#F8FAFC' }}>
+                    👥 Siswa Terhubung ({activeSession.peserta.length})
+                  </div>
+                  <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 700 }}>
+                    ● Lobi Siaga
+                  </span>
+                </div>
+
+                {activeSession.peserta.length === 0 ? (
+                  <div
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textAlign: 'center',
+                      padding: '16px',
+                      background: '#0F172A',
+                      borderRadius: '12px',
+                      border: '1px dashed #334155',
+                      color: '#64748B',
+                      fontSize: '13px',
+                    }}
+                  >
+                    Menunggu siswa memasukkan PIN {activeSession.pinKelas}...
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      maxHeight: '130px',
+                      overflowY: 'auto',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '8px',
+                      padding: '8px',
+                      background: '#0F172A',
+                      borderRadius: '12px',
+                    }}
+                  >
+                    {activeSession.peserta.map((p, idx) => (
+                      <span
+                        key={idx}
+                        style={{
+                          background: '#334155',
+                          color: '#F8FAFC',
+                          borderRadius: '16px',
+                          padding: '4px 12px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        ⚡ {p.nama}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Bottom Controls / Start Battle / Void Question */}
+            <div
+              style={{
+                paddingTop: '16px',
+                borderTop: '1px solid #334155',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '14px',
+              }}
+            >
+              {/* Emergency Invariant Void Button (ADR 0007) */}
+              {activeSession.status === 'BERLANGSUNG' ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '12px', color: '#F59E0B', fontWeight: 700 }}>
+                    🚨 Anulir Soal Darurat (ADR 0007):
+                  </span>
+                  <select
+                    id="select-void-q"
+                    style={{
+                      background: '#1E293B',
+                      color: '#F8FAFC',
+                      border: '1px solid #475569',
+                      borderRadius: '8px',
+                      padding: '6px 10px',
+                      fontSize: '12px',
+                    }}
+                  >
+                    {activeSession.butirSoal.map((q, i) => (
+                      <option key={q.id} value={q.id}>
+                        Soal #{i + 1}: {q.teks.substring(0, 32)}...
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const sel = document.getElementById('select-void-q') as HTMLSelectElement;
+                      if (sel && sel.value) {
+                        handleVoidQuestion(sel.value);
+                      }
+                    }}
+                    style={{
+                      background: '#7F1D1D',
+                      color: '#FCA5A5',
+                      border: '1px solid #DC2626',
+                      borderRadius: '8px',
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Anulir & Berikan Full Damage
+                  </button>
+                </div>
+              ) : (
+                <div style={{ fontSize: '12px', color: '#94A3B8' }}>
+                  💡 Berdasarkan <strong>ADR 0004</strong>, HP Monster akan dikunci secara otomatis saat pertempuran dimulai sesuai jumlah siswa yang bergabung.
+                </div>
+              )}
+
+              {/* Big Start / Battle Button */}
+              {activeSession.status === 'LOBI' ? (
+                <button
+                  type="button"
+                  onClick={handleStartBattle}
+                  style={{
+                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '14px',
+                    padding: '14px 28px',
+                    fontSize: '16px',
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    boxShadow: '0 8px 20px rgba(16, 185, 129, 0.4)',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  ⚔️ Mulai Pertarungan Sekarang!
+                </button>
+              ) : (
+                <div style={{ fontWeight: 800, color: '#34D399', fontSize: '14px' }}>
+                  ✓ Pertarungan sedang aktif di perangkat siswa
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -1,35 +1,23 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PaketSoal, ButirSoal } from '../domain/types';
-import { StudioSoalService } from '../domain/studio-soal-service';
-import { InMemoryStudioSoalRepository } from '../adapters/in-memory-repository';
+import { sharedStudioSoalService } from '../domain/shared-service';
+import { TeacherQuota } from '../domain/quota-manager';
 import { BerandaStudioSoal } from '../components/BerandaStudioSoal';
 import { EditorPaketSoal } from '../components/EditorPaketSoal';
-
-// Initial repository & service instance
-import { CurriculumService } from '../domain/curriculum-service';
-import { MockAIQuestionGenerator } from '../adapters/mock-ai-generator';
-import { MathEvaluator } from '../domain/math-evaluator';
-import { QuotaManager, TeacherQuota } from '../domain/quota-manager';
-
-const repository = new InMemoryStudioSoalRepository();
-const curriculumService = new CurriculumService();
-const aiGenerator = new MockAIQuestionGenerator();
-const mathEvaluator = new MathEvaluator();
-const quotaManager = new QuotaManager(200);
-const service = new StudioSoalService(
-  repository,
-  curriculumService,
-  aiGenerator,
-  mathEvaluator,
-  quotaManager
-);
+import { StudentPortal } from '../components/StudentPortal';
 
 export default function StudioSoalPage() {
   const [sets, setSets] = useState<PaketSoal[]>([]);
   const [activeSet, setActiveSet] = useState<PaketSoal | null>(null);
   const [quota, setQuota] = useState<TeacherQuota | null>(null);
+
+  // View mode switcher: Teacher Console or Student Play Portal
+  const [viewMode, setViewMode] = useState<'GURU' | 'SISWA'>('GURU');
+  const [studentPin, setStudentPin] = useState('');
+
+  const service = sharedStudioSoalService;
 
   const refreshSets = async () => {
     const list = await service.listSets('guru-demo');
@@ -41,6 +29,23 @@ export default function StudioSoalPage() {
       setActiveSet(updated ? { ...updated } : null);
     }
   };
+
+  useEffect(() => {
+    refreshSets();
+
+    // Check if URL has ?pin= or ?mode=siswa
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlPin = params.get('pin');
+      const urlMode = params.get('mode');
+      if (urlPin) {
+        setStudentPin(urlPin);
+        setViewMode('SISWA');
+      } else if (urlMode === 'siswa') {
+        setViewMode('SISWA');
+      }
+    }
+  }, []);
 
   const handleCreateNewSet = async (data: {
     judul: string;
@@ -109,8 +114,77 @@ export default function StudioSoalPage() {
     await refreshSets();
   };
 
+  // Boss Battle Session Handlers
+  const handleLaunchSession = async (paketId: string, config?: any) => {
+    return await service.launchSession(paketId, config);
+  };
+
+  const handleStartBattle = async (sessionId: string) => {
+    return await service.startBattle(sessionId);
+  };
+
+  const handleVoidQuestion = async (sessionId: string, questionId: string, reason?: string) => {
+    return await service.voidQuestion(sessionId, questionId, reason);
+  };
+
+  const handleGetSession = async (sessionId: string) => {
+    return await service.getSession(sessionId);
+  };
+
+  const handleSwitchToStudent = (pin: string) => {
+    setStudentPin(pin);
+    setViewMode('SISWA');
+  };
+
+  if (viewMode === 'SISWA') {
+    return (
+      <StudentPortal
+        initialPin={studentPin}
+        service={service}
+        onBackToTeacher={() => setViewMode('GURU')}
+      />
+    );
+  }
+
   return (
     <main>
+      {/* Top Quick Role Switcher Banner */}
+      <div
+        style={{
+          background: '#0F172A',
+          color: '#94A3B8',
+          padding: '8px 24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: '12px',
+          fontWeight: 600,
+          borderBottom: '1px solid #1E293B',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ color: '#38BDF8', fontWeight: 800 }}>⚔️ KelasQuest</span>
+          <span>•</span>
+          <span style={{ color: '#F8FAFC' }}>Mode Guru (Studio Soal & Konsol Pertarungan)</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setViewMode('SISWA')}
+          style={{
+            background: '#1E293B',
+            color: '#A5B4FC',
+            border: '1px solid #4338CA',
+            borderRadius: '20px',
+            padding: '4px 12px',
+            fontSize: '12px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          🎮 Uji Coba Mode Siswa (Play Portal) →
+        </button>
+      </div>
+
       {activeSet ? (
         <EditorPaketSoal
           paket={activeSet}
@@ -122,6 +196,11 @@ export default function StudioSoalPage() {
           onRegenerateQuestion={handleRegenerateQuestion}
           onDeleteQuestion={handleDeleteQuestion}
           onImportRawText={handleImportRawText}
+          onLaunchSession={handleLaunchSession}
+          onStartBattle={handleStartBattle}
+          onVoidQuestion={handleVoidQuestion}
+          onGetSession={handleGetSession}
+          onSwitchToStudent={handleSwitchToStudent}
           teacherQuota={quota}
         />
       ) : (

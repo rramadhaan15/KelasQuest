@@ -935,7 +935,26 @@ export class StudioSoalService {
     return this.repository.getQuestion(id);
   }
 
-  // --- Analitik Pasca Permainan & Pengaliran Balik (ADR 0001) ---
+  async attackMonster(
+    sessionId: string,
+    damage: number
+  ): Promise<{ remainingMonsterHp: number; isMonsterDefeated: boolean }> {
+    const session = await this.getSession(sessionId);
+    if (!session) throw new Error(`Sesi dengan id ${sessionId} tidak ditemukan`);
+
+    const currentHp = session.monsterHp ?? 0;
+    const remainingHp = Math.max(0, currentHp - damage);
+    session.monsterHp = remainingHp;
+    const isMonsterDefeated = remainingHp === 0;
+
+    if (isMonsterDefeated) {
+      session.status = 'SELESAI';
+    }
+
+    await this.repository.saveSession(session);
+    this.activeBattleSessions.set(session.id, session);
+    return { remainingMonsterHp: remainingHp, isMonsterDefeated };
+  }
 
   async concludeSession(
     sessionId: string,
