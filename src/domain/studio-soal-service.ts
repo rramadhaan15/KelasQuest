@@ -376,6 +376,15 @@ export class StudioSoalService {
     };
 
     await this.repository.saveQuestion(updated);
+
+    const paket = await this.repository.getSet(existing.paketId);
+    if (paket) {
+      const questions = await this.repository.listQuestionsBySet(existing.paketId);
+      paket.status = calculateSetStatus(questions);
+      paket.diperbaruiPada = new Date().toISOString();
+      await this.repository.saveSet(paket);
+    }
+
     return updated;
   }
 
@@ -385,12 +394,24 @@ export class StudioSoalService {
     const now = new Date().toISOString();
 
     for (const q of questions) {
-      if (q.isValid && q.statusTinjauan !== 'DISETUJUI') {
+      const isValid = q.isValid ?? validateQuestion(q.teks, q.pilihanJawaban).isValid;
+      if (isValid && q.statusTinjauan !== 'DISETUJUI') {
+        q.isValid = true;
+        q.validasiGalat = [];
         q.statusTinjauan = 'DISETUJUI';
         q.diperbaruiPada = now;
         await this.repository.saveQuestion(q);
         count++;
       }
+    }
+
+    const paket = await this.repository.getSet(setId);
+    if (paket) {
+      const updatedQuestions = await this.repository.listQuestionsBySet(setId);
+      paket.status = calculateSetStatus(updatedQuestions);
+      paket.diperbaruiPada = now;
+      await this.repository.saveSet(paket);
+      await this.recordRevision(setId, 'Setujui semua butir soal');
     }
 
     return { approvedCount: count };

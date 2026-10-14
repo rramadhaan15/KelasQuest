@@ -49,6 +49,25 @@ export function EditorPaketSoal({
   const [generateProgress, setGenerateProgress] = useState(0);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
 
+  // Approve all states
+  const [approvingAll, setApprovingAll] = useState(false);
+
+  const handleApproveAll = async () => {
+    if (!onApproveAll) return;
+    setApprovingAll(true);
+    try {
+      await onApproveAll(paket.id);
+    } catch (err: any) {
+      alert(err.message || 'Gagal menyetujui semua butir soal');
+    } finally {
+      setApprovingAll(false);
+    }
+  };
+
+  const unreviewedCount = paket.butirSoal.filter(
+    (q) => q.statusTinjauan !== 'DISETUJUI'
+  ).length;
+
   // Student Preview states
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewSession, setPreviewSession] = useState<StudentPreviewSession | null>(null);
@@ -418,6 +437,30 @@ export function EditorPaketSoal({
             </span>
           )}
 
+          {paket.butirSoal.length > 0 && unreviewedCount > 0 && onApproveAll && (
+            <button
+              type="button"
+              onClick={handleApproveAll}
+              disabled={approvingAll}
+              style={{
+                background: '#10B981',
+                color: '#FFFFFF',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '10px',
+                fontSize: '13px',
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
+                cursor: approvingAll ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {approvingAll ? '⏳ Menyetujui...' : `✓ Setujui Semua Soal (${unreviewedCount})`}
+            </button>
+          )}
+
           {paket.butirSoal.length > 0 && (
             <button
               type="button"
@@ -600,6 +643,84 @@ export function EditorPaketSoal({
             </button>
           )}
 
+          {/* Quick Approve All Action Card */}
+          {paket.butirSoal.length > 0 && unreviewedCount > 0 && onApproveAll && (
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
+                border: '1.5px solid #10B981',
+                borderRadius: '12px',
+                padding: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#065F46' }}>
+                  ⚡ {unreviewedCount} Soal Belum Disetujui
+                </span>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    background: '#FEF3C7',
+                    color: '#B45309',
+                  }}
+                >
+                  Perlu Tinjauan
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: '12px', color: '#047857', lineHeight: 1.4 }}>
+                Tekan tombol di bawah untuk menyetujui seluruh butir soal sekaligus agar paket siap dimainkan!
+              </p>
+              <button
+                type="button"
+                onClick={handleApproveAll}
+                disabled={approvingAll}
+                style={{
+                  background: '#10B981',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  padding: '9px 14px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: approvingAll ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                {approvingAll ? '⏳ Sedang Menyetujui...' : `✓ Setujui Semua Soal (${unreviewedCount})`}
+              </button>
+            </div>
+          )}
+
+          {paket.butirSoal.length > 0 && unreviewedCount === 0 && (
+            <div
+              style={{
+                background: '#F0FDF4',
+                border: '1px solid #BBF7D0',
+                borderRadius: '10px',
+                padding: '8px 12px',
+                fontSize: '12px',
+                fontWeight: 700,
+                color: '#15803D',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <span>✓ Semua {paket.butirSoal.length} butir soal telah disetujui (Siap Main)</span>
+            </div>
+          )}
+
           {paket.butirSoal.length === 0 ? (
             <div
               style={{
@@ -645,6 +766,32 @@ export function EditorPaketSoal({
                             ⚠️ Akurasi Rendah ({q.statistik.akurasiPersen}%)
                           </span>
                         )}
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            padding: '2px 6px',
+                            borderRadius: '8px',
+                            background:
+                              q.statusTinjauan === 'DISETUJUI'
+                                ? 'var(--hijau-bg)'
+                                : q.statusTinjauan === 'DIEDIT'
+                                ? '#EFF6FF'
+                                : '#FEF3C7',
+                            color:
+                              q.statusTinjauan === 'DISETUJUI'
+                                ? 'var(--hijau-benar)'
+                                : q.statusTinjauan === 'DIEDIT'
+                                ? '#2563EB'
+                                : '#D97706',
+                          }}
+                        >
+                          {q.statusTinjauan === 'DISETUJUI'
+                            ? '✓ Disetujui'
+                            : q.statusTinjauan === 'DIEDIT'
+                            ? '✎ Diedit'
+                            : '⏳ Belum Ditinjau'}
+                        </span>
                         <span
                           style={{
                             fontSize: '11px',
