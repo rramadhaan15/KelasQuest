@@ -8,7 +8,6 @@ import { BerandaStudioSoal } from '../components/BerandaStudioSoal';
 import { EditorPaketSoal } from '../components/EditorPaketSoal';
 import { StudentPortal } from '../components/StudentPortal';
 
-import { Swords } from 'lucide-react';
 
 export default function StudioSoalPage() {
   const [sets, setSets] = useState<PaketSoal[]>([]);
@@ -150,27 +149,6 @@ export default function StudioSoalPage() {
 
   return (
     <main>
-      {/* Top Quick Role Switcher Banner */}
-      <div
-        style={{
-          background: '#0F172A',
-          color: '#94A3B8',
-          padding: '8px 24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          fontSize: '12px',
-          fontWeight: 600,
-          borderBottom: '1px solid #1E293B',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Swords size={15} color="#38BDF8" />
-          <span style={{ color: '#38BDF8', fontWeight: 800 }}>KelasQuest</span>
-          <span style={{ opacity: 0.4 }}>|</span>
-          <span style={{ color: '#F8FAFC' }}>Mode Guru & Konsol Studio</span>
-        </div>
-      </div>
 
       {activeSet ? (
         <EditorPaketSoal
