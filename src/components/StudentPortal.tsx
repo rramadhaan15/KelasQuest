@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { StudioSoalService } from '../domain/studio-soal-service';
 import { SnapshotSesi, ButirSoalSnapshot } from '../domain/types';
+import { Swords, Lock, Zap, Trophy, CheckCircle2, XCircle, ArrowRight, ArrowLeft, AlertTriangle } from 'lucide-react';
 
 interface StudentPortalProps {
   initialPin?: string;
@@ -181,7 +182,22 @@ export function StudentPortal({ initialPin = '', service, onBackToTeacher }: Stu
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: '48px', marginBottom: '8px' }}>⚔️</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
+            <div
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                background: 'rgba(99, 102, 241, 0.1)',
+                border: '1px solid rgba(99, 102, 241, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Swords size={28} color="var(--ungu-monster)" />
+            </div>
+          </div>
           <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--tinta)', marginBottom: '4px' }}>
             Arena Siswa KelasQuest
           </h1>
@@ -201,9 +217,13 @@ export function StudentPortal({ initialPin = '', service, onBackToTeacher }: Stu
                 fontWeight: 600,
                 marginBottom: '16px',
                 textAlign: 'left',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
               }}
             >
-              ⚠️ {errorMsg}
+              <AlertTriangle size={16} />
+              <span>{errorMsg}</span>
             </div>
           )}
 
@@ -266,19 +286,25 @@ export function StudentPortal({ initialPin = '', service, onBackToTeacher }: Stu
                 color: 'var(--putih)',
                 padding: '14px',
                 borderRadius: '14px',
-                fontSize: '16px',
+                fontSize: '15px',
                 fontWeight: 800,
                 boxShadow: '0 8px 20px rgba(91, 61, 245, 0.35)',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 marginTop: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
               }}
             >
-              {loading ? 'Memasuki Arena...' : '🚀 Gabung Pertarungan!'}
+              <Swords size={18} />
+              <span>{loading ? 'Memasuki Arena...' : 'Masuk ke Pertarungan'}</span>
             </button>
           </form>
 
-          <div style={{ marginTop: '20px', fontSize: '12px', color: 'var(--abu-teks)' }}>
-            🔒 Masuk langsung tanpa login & aman data pribadi (UU PDP).
+          <div style={{ marginTop: '20px', fontSize: '12px', color: 'var(--abu-teks)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            <Lock size={12} />
+            <span>Akses langsung tanpa login & aman data pribadi (UU PDP).</span>
           </div>
         </div>
       </div>
@@ -329,18 +355,32 @@ export function StudentPortal({ initialPin = '', service, onBackToTeacher }: Stu
           <div
             style={{
               background: 'linear-gradient(135deg, #FFF7ED, #FFEDD5)',
-              border: '2px dashed #FDBA74',
+              border: '1.5px solid #FDBA74',
               borderRadius: '18px',
-              padding: '20px',
+              padding: '24px 20px',
               marginBottom: '20px',
             }}
           >
-            <div style={{ fontSize: '64px', marginBottom: '8px' }}>👾</div>
+            <div
+              style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '18px',
+                background: '#FED7AA',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '12px',
+                border: '1px solid #FDBA74',
+              }}
+            >
+              <Swords size={30} color="#C2410C" />
+            </div>
             <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#C2410C', margin: 0 }}>
               {session.config.namaBoss || 'Monster Penjaga Gerbang'}
             </h2>
             <p style={{ fontSize: '13px', color: '#9A3412', marginTop: '4px', marginBottom: '0' }}>
-              Jumlah Butir Soal: {session.butirSoal.length} Soal Bersama
+              Target: {session.butirSoal.length} Butir Soal Kelas
             </p>
           </div>
 
@@ -439,7 +479,20 @@ export function StudentPortal({ initialPin = '', service, onBackToTeacher }: Stu
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '28px' }}>👾</span>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    background: '#FFEDD5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid #FDBA74',
+                  }}
+                >
+                  <Swords size={20} color="#C2410C" />
+                </div>
                 <div>
                   <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: '#C2410C' }}>
                     {session.config.namaBoss || 'Boss Monster'}
@@ -452,8 +505,9 @@ export function StudentPortal({ initialPin = '', service, onBackToTeacher }: Stu
                   {currentHp} / {maxHp} HP
                 </span>
                 {combo > 1 && (
-                  <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--api-serangan)' }}>
-                    🔥 Combo x{combo}!
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--api-serangan)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '3px' }}>
+                    <Zap size={12} />
+                    <span>Combo x{combo}!</span>
                   </div>
                 )}
               </div>
@@ -580,12 +634,22 @@ export function StudentPortal({ initialPin = '', service, onBackToTeacher }: Stu
                   border: `1px solid ${answerFeedback.isCorrect ? 'var(--hijau-benar)' : 'var(--merah-salah)'}`,
                 }}
               >
-                <div style={{ fontWeight: 800, fontSize: '14px', color: answerFeedback.isCorrect ? 'var(--hijau-benar)' : 'var(--merah-salah)' }}>
-                  {answerFeedback.isCorrect ? '⚔️ SERANGAN TELAK! Monster Terkena Damage!' : '🛡️ Kurang Tepat!'}
+                <div style={{ fontWeight: 800, fontSize: '14px', color: answerFeedback.isCorrect ? 'var(--hijau-benar)' : 'var(--merah-salah)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {answerFeedback.isCorrect ? (
+                    <>
+                      <CheckCircle2 size={16} />
+                      <span>Serangan Telak! Monster Terkena Damage</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle size={16} />
+                      <span>Jawaban Belum Tepat</span>
+                    </>
+                  )}
                 </div>
                 {answerFeedback.misconception && (
                   <div style={{ fontSize: '12px', color: '#991B1B', marginTop: '4px' }}>
-                    💡 Catatan: {answerFeedback.misconception}
+                    <strong>Catatan Edukatif:</strong> {answerFeedback.misconception}
                   </div>
                 )}
                 <div style={{ fontSize: '12px', color: 'var(--tinta)', marginTop: '4px' }}>
@@ -608,9 +672,14 @@ export function StudentPortal({ initialPin = '', service, onBackToTeacher }: Stu
                   fontSize: '15px',
                   fontWeight: 800,
                   marginTop: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
                 }}
               >
-                {currentIndex + 1 < session.butirSoal.length ? 'Soal Berikutnya →' : 'Selesaikan Pertarungan 🏆'}
+                <span>{currentIndex + 1 < session.butirSoal.length ? 'Soal Berikutnya' : 'Selesaikan Pertarungan'}</span>
+                <ArrowRight size={16} />
               </button>
             )}
           </div>
@@ -642,7 +711,22 @@ export function StudentPortal({ initialPin = '', service, onBackToTeacher }: Stu
           textAlign: 'center',
         }}
       >
-        <div style={{ fontSize: '64px', marginBottom: '8px' }}>🏆</div>
+        <div
+          style={{
+            width: '72px',
+            height: '72px',
+            borderRadius: '24px',
+            background: '#FEF3C7',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '16px',
+            border: '2px solid #FDE68A',
+            boxShadow: '0 8px 20px rgba(245, 158, 11, 0.25)',
+          }}
+        >
+          <Trophy size={36} color="#D97706" />
+        </div>
         <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--hijau-benar)', marginBottom: '6px' }}>
           VICTORY!
         </h1>

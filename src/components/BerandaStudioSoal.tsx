@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { PaketSoal, GayaSoal, ParameterPenjanaan } from '../domain/types';
 import { CurriculumService, CapaianItem } from '../domain/curriculum-service';
+import { Sparkles, Plus, CheckCircle2, X } from 'lucide-react';
 
 const curriculumService = new CurriculumService();
 
@@ -164,7 +165,20 @@ export function BerandaStudioSoal({ sets, onOpenSet, onCreateNewSet }: BerandaSt
             boxShadow: '0 4px 12px rgba(22, 32, 74, 0.05)',
           }}
         >
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>👾</div>
+          <div
+            style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '16px',
+              background: '#F5F3FF',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '16px',
+            }}
+          >
+            <Sparkles size={28} color="var(--ungu-monster)" />
+          </div>
           <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '8px' }}>
             Mulai dari Topik Pelajaran
           </h2>
@@ -184,7 +198,7 @@ export function BerandaStudioSoal({ sets, onOpenSet, onCreateNewSet }: BerandaSt
                 fontWeight: 700,
               }}
             >
-              📐 Penjumlahan Pecahan (5 SD)
+              Penjumlahan Pecahan (5 SD)
             </button>
             <button
               onClick={() => handleQuickTopic('Fotosintesis dan Rantai Makanan', 'IPA', '7 SMP')}
@@ -197,7 +211,7 @@ export function BerandaStudioSoal({ sets, onOpenSet, onCreateNewSet }: BerandaSt
                 fontWeight: 700,
               }}
             >
-              🌿 Fotosintesis (7 SMP)
+              Fotosintesis (7 SMP)
             </button>
             <button
               onClick={() => handleQuickTopic('Proklamasi Kemerdekaan Indonesia', 'Sejarah', '11 SMA')}
@@ -210,7 +224,7 @@ export function BerandaStudioSoal({ sets, onOpenSet, onCreateNewSet }: BerandaSt
                 fontWeight: 700,
               }}
             >
-              📜 Proklamasi Kemerdekaan (11 SMA)
+              Proklamasi Kemerdekaan (11 SMA)
             </button>
           </div>
         </div>
@@ -282,9 +296,13 @@ export function BerandaStudioSoal({ sets, onOpenSet, onCreateNewSet }: BerandaSt
                       borderRadius: '10px',
                       background: isReady ? 'var(--hijau-bg)' : 'var(--merah-bg)',
                       color: isReady ? 'var(--hijau-benar)' : 'var(--merah-salah)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
                     }}
                   >
-                    {isReady ? '✓ Siap Main' : '✎ Draf'}
+                    {isReady && <CheckCircle2 size={11} />}
+                    {isReady ? 'Siap Main' : 'Draf'}
                   </span>
                 </div>
 
@@ -379,12 +397,13 @@ export function BerandaStudioSoal({ sets, onOpenSet, onCreateNewSet }: BerandaSt
                   fontSize: '20px',
                   cursor: 'pointer',
                   color: 'var(--abu-teks)',
-                  padding: '4px',
-                  lineHeight: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
                 aria-label="Tutup"
               >
-                ✕
+                <X size={20} />
               </button>
             </div>
 
@@ -621,9 +640,12 @@ export function BerandaStudioSoal({ sets, onOpenSet, onCreateNewSet }: BerandaSt
                             fontSize: '11px',
                             fontWeight: 700,
                             color: mudahPct + sedangPct + sulitPct === 100 ? 'var(--hijau-benar)' : '#D97706',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
                           }}
                         >
-                          Total: {mudahPct + sedangPct + sulitPct}% {mudahPct + sedangPct + sulitPct === 100 ? '✓' : '(Target 100%)'}
+                          Total: {mudahPct + sedangPct + sulitPct}% {mudahPct + sedangPct + sulitPct === 100 ? <CheckCircle2 size={11} /> : '(Target 100%)'}
                         </span>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px' }}>

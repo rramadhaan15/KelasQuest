@@ -5,6 +5,26 @@ import { PaketSoal, ButirSoal, TingkatKesulitan, SnapshotSesi } from '../domain/
 import { validateQuestion } from '../domain/validation';
 import { createStudentPreviewSession, StudentPreviewSession } from '../domain/preview-simulator';
 import { parseRawQuestions, convertParsedToManualInput } from '../domain/text-parser';
+import {
+  Sparkles,
+  Key,
+  Play,
+  Rocket,
+  Plus,
+  Trash2,
+  Clock,
+  Check,
+  X,
+  FileText,
+  RefreshCw,
+  AlertTriangle,
+  Users,
+  CheckCircle2,
+  Swords,
+  Copy,
+  Zap,
+  Gamepad2,
+} from 'lucide-react';
 
 interface EditorPaketSoalProps {
   paket: PaketSoal;
@@ -394,7 +414,10 @@ export function EditorPaketSoal({
                   borderRadius: '12px',
                 }}
               >
-                {paket.status === 'SIAP_MAIN' ? '✓ Siap Main' : '✎ Draf'}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  {paket.status === 'SIAP_MAIN' && <CheckCircle2 size={12} />}
+                  {paket.status === 'SIAP_MAIN' ? 'Siap Main' : 'Draf'}
+                </span>
               </span>
             </div>
           </div>
@@ -413,12 +436,13 @@ export function EditorPaketSoal({
               border: hasCustomKey ? '1px solid #86EFAC' : '1px solid var(--abu-border)',
               padding: '4px 10px',
               borderRadius: '12px',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: '4px',
+              gap: '6px',
             }}
           >
-            {hasCustomKey ? '✨ Gemini AI Aktif' : '🔑 Kunci Gemini AI'}
+            {hasCustomKey ? <Sparkles size={13} color="var(--ungu-monster)" /> : <Key size={13} />}
+            <span>{hasCustomKey ? 'Gemini AI Aktif' : 'Kunci Gemini AI'}</span>
           </button>
 
           {teacherQuota && (
@@ -431,9 +455,13 @@ export function EditorPaketSoal({
                 padding: '4px 10px',
                 borderRadius: '12px',
                 border: '1px solid #FDE68A',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
               }}
             >
-              ⚡ Kuota AI: {teacherQuota.remainingQuota} / {teacherQuota.totalDailyQuota}
+              <Zap size={12} color="#D97706" />
+              <span>Kuota AI: {teacherQuota.remainingQuota} / {teacherQuota.totalDailyQuota}</span>
             </span>
           )}
 
@@ -450,14 +478,15 @@ export function EditorPaketSoal({
                 borderRadius: '10px',
                 fontSize: '13px',
                 fontWeight: 800,
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
                 boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
                 cursor: approvingAll ? 'not-allowed' : 'pointer',
               }}
             >
-              {approvingAll ? '⏳ Menyetujui...' : `✓ Setujui Semua Soal (${unreviewedCount})`}
+              <Check size={14} />
+              <span>{approvingAll ? 'Menyetujui...' : `Setujui Semua Soal (${unreviewedCount})`}</span>
             </button>
           )}
 
@@ -478,12 +507,13 @@ export function EditorPaketSoal({
                 borderRadius: '10px',
                 fontSize: '13px',
                 fontWeight: 700,
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
               }}
             >
-              🎮 Main sebagai Siswa
+              <Play size={13} fill="currentColor" />
+              <span>Pratinjau Siswa</span>
             </button>
           )}
 
@@ -500,14 +530,15 @@ export function EditorPaketSoal({
                 borderRadius: '10px',
                 fontSize: '13px',
                 fontWeight: 800,
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
                 boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)',
                 cursor: launching ? 'not-allowed' : 'pointer',
               }}
             >
-              {launching ? 'Meluncurkan...' : '🚀 Luncurkan Boss Battle'}
+              <Rocket size={14} />
+              <span>{launching ? 'Meluncurkan...' : 'Luncurkan Boss Battle'}</span>
             </button>
           )}
         </div>
@@ -555,9 +586,13 @@ export function EditorPaketSoal({
                   fontSize: '12px',
                   fontWeight: 700,
                   border: '1px solid var(--abu-border)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
                 }}
               >
-                📋 Tempel Teks
+                <FileText size={13} />
+                <span>Tempel Teks</span>
               </button>
               <button
                 type="button"
@@ -569,9 +604,13 @@ export function EditorPaketSoal({
                   borderRadius: '8px',
                   fontSize: '13px',
                   fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
                 }}
               >
-                + Tambah Manual
+                <Plus size={13} />
+                <span>Tambah Manual</span>
               </button>
             </div>
           </div>
@@ -590,8 +629,9 @@ export function EditorPaketSoal({
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#C2410C' }}>
-                  👾 AI Sedang Menyusun Soal...
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#C2410C', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <Sparkles size={14} color="#C2410C" />
+                  <span>Menyusun Butir Soal AI...</span>
                 </span>
                 <button
                   type="button"
@@ -639,7 +679,8 @@ export function EditorPaketSoal({
                 gap: '6px',
               }}
             >
-              ✨ Buat {paket.parameterPenjanaan?.jumlahSoal || 20} Soal dengan AI
+              <Sparkles size={15} />
+              <span>Buat {paket.parameterPenjanaan?.jumlahSoal || 20} Soal AI</span>
             </button>
           )}
 
@@ -659,7 +700,7 @@ export function EditorPaketSoal({
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '13px', fontWeight: 800, color: '#065F46' }}>
-                  ⚡ {unreviewedCount} Soal Belum Disetujui
+                  {unreviewedCount} Soal Perlu Ditinjau
                 </span>
                 <span
                   style={{
@@ -671,7 +712,7 @@ export function EditorPaketSoal({
                     color: '#B45309',
                   }}
                 >
-                  Perlu Tinjauan
+                  Belum Disetujui
                 </span>
               </div>
               <p style={{ margin: 0, fontSize: '12px', color: '#047857', lineHeight: 1.4 }}>
@@ -697,7 +738,8 @@ export function EditorPaketSoal({
                   gap: '6px',
                 }}
               >
-                {approvingAll ? '⏳ Sedang Menyetujui...' : `✓ Setujui Semua Soal (${unreviewedCount})`}
+                <Check size={14} />
+                <span>{approvingAll ? 'Sedang Menyetujui...' : `Setujui Semua Soal (${unreviewedCount})`}</span>
               </button>
             </div>
           )}
@@ -717,7 +759,8 @@ export function EditorPaketSoal({
                 gap: '6px',
               }}
             >
-              <span>✓ Semua {paket.butirSoal.length} butir soal telah disetujui (Siap Main)</span>
+              <CheckCircle2 size={14} color="#15803D" />
+              <span>Semua {paket.butirSoal.length} butir soal telah disetujui (Siap Main)</span>
             </div>
           )}
 
@@ -763,7 +806,7 @@ export function EditorPaketSoal({
                               border: '1px solid #FCA5A5',
                             }}
                           >
-                            ⚠️ Akurasi Rendah ({q.statistik.akurasiPersen}%)
+                            Akurasi Rendah ({q.statistik.akurasiPersen}%)
                           </span>
                         )}
                         <span
@@ -787,10 +830,10 @@ export function EditorPaketSoal({
                           }}
                         >
                           {q.statusTinjauan === 'DISETUJUI'
-                            ? '✓ Disetujui'
+                            ? 'Disetujui'
                             : q.statusTinjauan === 'DIEDIT'
-                            ? '✎ Diedit'
-                            : '⏳ Belum Ditinjau'}
+                            ? 'Diedit'
+                            : 'Belum Ditinjau'}
                         </span>
                         <span
                           style={{
@@ -864,10 +907,10 @@ export function EditorPaketSoal({
                   }}
                 >
                     {activeQuestion.statusTinjauan === 'DISETUJUI'
-                      ? '✓ Disetujui'
+                      ? 'Disetujui'
                       : activeQuestion.statusTinjauan === 'DIEDIT'
-                      ? '✎ Diedit'
-                      : '⏳ Belum Ditinjau'}
+                      ? 'Diedit'
+                      : 'Belum Ditinjau'}
                   </span>
                   {activeQuestion.statistik && (
                     <span
@@ -881,7 +924,7 @@ export function EditorPaketSoal({
                         border: activeQuestion.statistik.labelAkurasiRendah ? '1px solid #FCA5A5' : '1px solid #86EFAC',
                       }}
                     >
-                      {activeQuestion.statistik.labelAkurasiRendah ? '⚠️ Akurasi Rendah: ' : '🎯 Akurasi: '}
+                      {activeQuestion.statistik.labelAkurasiRendah ? 'Akurasi Rendah: ' : 'Akurasi: '}
                       {activeQuestion.statistik.akurasiPersen}% ({activeQuestion.statistik.totalBenar}/{activeQuestion.statistik.totalMenjawab} siswa)
                     </span>
                   )}
@@ -903,9 +946,13 @@ export function EditorPaketSoal({
                     borderRadius: '8px',
                     fontSize: '12px',
                     fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
                   }}
                 >
-                  ✓ Setujui Soal Ini
+                  <Check size={13} />
+                  <span>Setujui Soal Ini</span>
                 </button>
               )}
 
@@ -925,9 +972,13 @@ export function EditorPaketSoal({
                     borderRadius: '8px',
                     fontSize: '12px',
                     fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
                   }}
                 >
-                  🗑 Hapus
+                  <Trash2 size={13} />
+                  <span>Hapus</span>
                 </button>
               )}
 
@@ -962,8 +1013,9 @@ export function EditorPaketSoal({
                 flexWrap: 'wrap',
               }}
             >
-              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--abu-teks)' }}>
-                ✨ Buat Ulang Soal Ini:
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--abu-teks)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <RefreshCw size={12} color="var(--abu-teks)" />
+                <span>Buat Ulang Soal Ini:</span>
               </span>
               <button
                 type="button"
@@ -1256,13 +1308,16 @@ export function EditorPaketSoal({
                 fontWeight: 700,
               }}
             >
-              <span>🎮 Pratinjau Main Siswa</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <Gamepad2 size={14} color="#38BDF8" />
+                Pratinjau Siswa
+              </span>
               <button
                 type="button"
                 onClick={() => setShowPreviewModal(false)}
-                style={{ background: 'transparent', color: '#94A3B8', fontSize: '14px' }}
+                style={{ background: 'transparent', color: '#94A3B8', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               >
-                ✕ Tutup
+                <X size={14} /> Tutup
               </button>
             </div>
 
@@ -1270,7 +1325,9 @@ export function EditorPaketSoal({
             <div style={{ padding: '16px', background: 'var(--langit)', borderBottom: '1px solid var(--abu-border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
                 <span>Soal {previewSession.currentIndex + 1} dari {previewSession.totalQuestions}</span>
-                <span style={{ color: 'var(--api-serangan)' }}>⏱ {previewSession.currentQuestion.waktuDetik} dtk</span>
+                <span style={{ color: 'var(--api-serangan)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Clock size={12} /> {previewSession.currentQuestion.waktuDetik} dtk
+                </span>
               </div>
               <div style={{ height: '6px', background: '#CBD5E1', borderRadius: '3px', overflow: 'hidden' }}>
                 <div
@@ -1341,8 +1398,9 @@ export function EditorPaketSoal({
                     fontSize: '13px',
                   }}
                 >
-                  <strong style={{ color: previewFeedback.isCorrect ? 'var(--hijau-benar)' : 'var(--merah-salah)' }}>
-                    {previewFeedback.isCorrect ? '✓ Jawaban Anda Benar!' : '✗ Jawaban Belum Tepat!'}
+                  <strong style={{ color: previewFeedback.isCorrect ? 'var(--hijau-benar)' : 'var(--merah-salah)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    {previewFeedback.isCorrect ? <CheckCircle2 size={15} /> : <X size={15} />}
+                    {previewFeedback.isCorrect ? 'Jawaban Anda Benar!' : 'Jawaban Belum Tepat!'}
                   </strong>
                   <p style={{ marginTop: '4px', color: 'var(--tinta)' }}>{previewFeedback.explanation}</p>
                 </div>
@@ -1443,13 +1501,28 @@ export function EditorPaketSoal({
                 justifyContent: 'space-between',
               }}
             >
-              <div>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>
-                  📋 Tempel Teks Soal (Word / WhatsApp)
-                </h3>
-                <p style={{ fontSize: '12px', color: 'var(--abu-teks)', margin: '4px 0 0 0' }}>
-                  Salin dan tempel butir soal massal. Format penomoran 1., 2., dan pilihan A-D akan terurai otomatis.
-                </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    background: 'var(--langit)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <FileText size={18} color="var(--ungu-monster)" />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>
+                    Tempel Teks Soal (Word / WhatsApp)
+                  </h3>
+                  <p style={{ fontSize: '12px', color: 'var(--abu-teks)', margin: '2px 0 0 0' }}>
+                    Salin dan tempel butir soal massal. Format penomoran 1., 2., dan pilihan A-D akan terurai otomatis.
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
@@ -1460,9 +1533,12 @@ export function EditorPaketSoal({
                   fontSize: '18px',
                   cursor: 'pointer',
                   color: 'var(--abu-teks)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
@@ -1511,9 +1587,12 @@ export function EditorPaketSoal({
                           borderRadius: '10px',
                           background: '#FEF3C7',
                           color: '#B45309',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
                         }}
                       >
-                        ⚠️ {parsedPreview.totalPerluDiperiksa} Butir Perlu Diperiksa
+                        <AlertTriangle size={12} /> {parsedPreview.totalPerluDiperiksa} Butir Perlu Diperiksa
                       </span>
                     ) : (
                       <span
@@ -1524,9 +1603,12 @@ export function EditorPaketSoal({
                           borderRadius: '10px',
                           background: 'var(--hijau-bg)',
                           color: 'var(--hijau-benar)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
                         }}
                       >
-                        ✓ Semua Soal Valid
+                        <Check size={12} /> Semua Soal Valid
                       </span>
                     )}
                   </div>
@@ -1562,7 +1644,7 @@ export function EditorPaketSoal({
                 </div>
               ) : (
                 <div style={{ fontSize: '12px', color: 'var(--abu-teks)', background: '#F8FAFC', padding: '10px', borderRadius: '8px' }}>
-                  💡 <strong>Tip Format:</strong> Guru dapat menandai kunci jawaban langsung dengan menambahkan tanda bintang di depan pilihan (contoh: <code>*C. 100</code>) atau baris kunci di bawah soal (contoh: <code>Kunci: C</code>).
+                  <strong>Tip Format:</strong> Guru dapat menandai kunci jawaban langsung dengan menambahkan tanda bintang di depan pilihan (contoh: <code>*C. 100</code>) atau baris kunci di bawah soal (contoh: <code>Kunci: C</code>).
                 </div>
               )}
             </div>
@@ -1639,16 +1721,19 @@ export function EditorPaketSoal({
               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--tinta)' }}>
-                🔑 Kunci Google Gemini AI (Opsional)
-              </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Key size={18} color="var(--ungu-monster)" />
+                <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--tinta)' }}>
+                  Kunci Google Gemini AI (Opsional)
+                </h3>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowApiKeyModal(false)}
-                style={{ background: 'transparent', border: 'none', fontSize: '18px', cursor: 'pointer', color: 'var(--abu-teks)' }}
+                style={{ background: 'transparent', border: 'none', fontSize: '18px', cursor: 'pointer', color: 'var(--abu-teks)', display: 'flex', alignItems: 'center' }}
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
@@ -1687,7 +1772,7 @@ export function EditorPaketSoal({
                 marginBottom: '20px',
               }}
             >
-              💡 <strong>Catatan:</strong> Jika Anda tidak memiliki API Key, kosongkan saja field ini. KelasQuest secara otomatis menggunakan <strong>Mesin Kurikulum Cerdas Bawaan</strong> yang langsung menghasilkan 20 butir soal lengkap dan bervariasi sesuai topik Anda.
+              <strong>Catatan:</strong> Jika Anda tidak memiliki API Key, kosongkan saja field ini. KelasQuest secara otomatis menggunakan <strong>Mesin Kurikulum Cerdas Bawaan</strong> yang langsung menghasilkan 20 butir soal lengkap dan bervariasi sesuai topik Anda.
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
@@ -1761,9 +1846,22 @@ export function EditorPaketSoal({
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '24px' }}>🏰</span>
-                  <h2 style={{ fontSize: '22px', fontWeight: 900, color: '#F1F5F9', margin: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 12,
+                      background: 'rgba(99, 102, 241, 0.15)',
+                      border: '1px solid rgba(99, 102, 241, 0.3)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Swords size={20} color="#818CF8" />
+                  </div>
+                  <h2 style={{ fontSize: '20px', fontWeight: 900, color: '#F1F5F9', margin: 0 }}>
                     Konsol Proyektor Guru: Boss Battle
                   </h2>
                 </div>
@@ -1799,13 +1897,29 @@ export function EditorPaketSoal({
                         ? '#10B981'
                         : '#6366F1'
                     }`,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
                   }}
                 >
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background:
+                        activeSession.status === 'BERLANGSUNG'
+                          ? '#EF4444'
+                          : activeSession.status === 'SELESAI'
+                          ? '#10B981'
+                          : '#6366F1',
+                    }}
+                  />
                   {activeSession.status === 'LOBI'
-                    ? '🟡 MENUNGGU SISWA'
+                    ? 'MENUNGGU SISWA'
                     : activeSession.status === 'BERLANGSUNG'
-                    ? '🔴 PERTEMPURAN AKTIF'
-                    : '🟢 SELESAI'}
+                    ? 'PERTEMPURAN AKTIF'
+                    : 'SELESAI'}
                 </span>
                 <button
                   type="button"
@@ -1816,12 +1930,15 @@ export function EditorPaketSoal({
                     color: '#94A3B8',
                     borderRadius: '8px',
                     padding: '6px 12px',
-                    fontSize: '14px',
+                    fontSize: '13px',
                     fontWeight: 700,
                     cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
                   }}
                 >
-                  ✕ Tutup
+                  <X size={14} /> Tutup
                 </button>
               </div>
             </div>
@@ -1901,7 +2018,15 @@ export function EditorPaketSoal({
                     boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
                   }}
                 >
-                  {copiedLink ? '✓ Link Siswa Disalin!' : '📋 Salin Link Akses Siswa'}
+                  {copiedLink ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <Check size={14} /> Link Siswa Disalin!
+                    </span>
+                  ) : (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <Copy size={14} /> Salin Link Akses Siswa
+                    </span>
+                  )}
                 </button>
 
                 {onSwitchToStudent && (
@@ -1926,13 +2051,13 @@ export function EditorPaketSoal({
                       boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
                     }}
                   >
-                    🎮 Buka Tampilan Siswa (Uji Sendiri)
+                    <Gamepad2 size={14} /> Buka Tampilan Siswa (Uji Sendiri)
                   </button>
                 )}
               </div>
 
               <div style={{ fontSize: '12px', color: '#94A3B8' }}>
-                🔗 URL Siswa: <code style={{ color: '#38BDF8' }}>{typeof window !== 'undefined' ? window.location.origin : ''}/play?pin={activeSession.pinKelas}</code>
+                URL Akses Siswa: <code style={{ color: '#38BDF8' }}>{typeof window !== 'undefined' ? window.location.origin : ''}/play?pin={activeSession.pinKelas}</code>
               </div>
             </div>
 
@@ -1951,8 +2076,21 @@ export function EditorPaketSoal({
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '32px' }}>👹</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 12,
+                        background: 'rgba(239, 68, 68, 0.15)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Swords size={22} color="#F87171" />
+                    </div>
                     <div>
                       <div style={{ fontWeight: 800, fontSize: '16px', color: '#F8FAFC' }}>
                         {activeSession.config?.namaBoss || `Monster ${paket.topik}`}
@@ -2004,11 +2142,11 @@ export function EditorPaketSoal({
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ fontWeight: 800, fontSize: '15px', color: '#F8FAFC' }}>
-                    👥 Siswa Terhubung ({activeSession.peserta.length})
+                  <div style={{ fontWeight: 800, fontSize: '15px', color: '#F8FAFC', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <Users size={16} color="#94A3B8" /> Siswa Terhubung ({activeSession.peserta.length})
                   </div>
                   <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 700 }}>
-                    ● Lobi Siaga
+                    Siaga di Lobi
                   </span>
                 </div>
 
@@ -2058,7 +2196,7 @@ export function EditorPaketSoal({
                           gap: '6px',
                         }}
                       >
-                        ⚡ {p.nama}
+                        {p.nama}
                       </span>
                     ))}
                   </div>
@@ -2081,8 +2219,8 @@ export function EditorPaketSoal({
               {/* Emergency Invariant Void Button (ADR 0007) */}
               {activeSession.status === 'BERLANGSUNG' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '12px', color: '#F59E0B', fontWeight: 700 }}>
-                    🚨 Anulir Soal Darurat (ADR 0007):
+                  <span style={{ fontSize: '12px', color: '#F59E0B', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <AlertTriangle size={14} color="#F59E0B" /> Anulir Soal Darurat (ADR 0007):
                   </span>
                   <select
                     id="select-void-q"
@@ -2125,7 +2263,7 @@ export function EditorPaketSoal({
                 </div>
               ) : (
                 <div style={{ fontSize: '12px', color: '#94A3B8' }}>
-                  💡 Berdasarkan <strong>ADR 0004</strong>, HP Monster akan dikunci secara otomatis saat pertempuran dimulai sesuai jumlah siswa yang bergabung.
+                  Berdasarkan <strong>ADR 0004</strong>, HP Monster akan dikunci secara otomatis saat pertempuran dimulai sesuai jumlah siswa yang bergabung.
                 </div>
               )}
 
@@ -2145,13 +2283,16 @@ export function EditorPaketSoal({
                     cursor: 'pointer',
                     boxShadow: '0 8px 20px rgba(16, 185, 129, 0.4)',
                     letterSpacing: '0.02em',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
                   }}
                 >
-                  ⚔️ Mulai Pertarungan Sekarang!
+                  <Play size={18} fill="currentColor" /> Mulai Pertarungan Sekarang!
                 </button>
               ) : (
-                <div style={{ fontWeight: 800, color: '#34D399', fontSize: '14px' }}>
-                  ✓ Pertarungan sedang aktif di perangkat siswa
+                <div style={{ fontWeight: 800, color: '#34D399', fontSize: '14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <CheckCircle2 size={16} /> Pertarungan sedang aktif di perangkat siswa
                 </div>
               )}
             </div>

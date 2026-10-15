@@ -8,6 +8,8 @@ import { BerandaStudioSoal } from '../components/BerandaStudioSoal';
 import { EditorPaketSoal } from '../components/EditorPaketSoal';
 import { StudentPortal } from '../components/StudentPortal';
 
+import { Swords, Gamepad2 } from 'lucide-react';
+
 export default function StudioSoalPage() {
   const [sets, setSets] = useState<PaketSoal[]>([]);
   const [activeSet, setActiveSet] = useState<PaketSoal | null>(null);
@@ -163,9 +165,10 @@ export default function StudioSoalPage() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ color: '#38BDF8', fontWeight: 800 }}>⚔️ KelasQuest</span>
-          <span>•</span>
-          <span style={{ color: '#F8FAFC' }}>Mode Guru (Studio Soal & Konsol Pertarungan)</span>
+          <Swords size={15} color="#38BDF8" />
+          <span style={{ color: '#38BDF8', fontWeight: 800 }}>KelasQuest</span>
+          <span style={{ opacity: 0.4 }}>|</span>
+          <span style={{ color: '#F8FAFC' }}>Mode Guru & Konsol Studio</span>
         </div>
         <button
           type="button"
@@ -175,13 +178,17 @@ export default function StudioSoalPage() {
             color: '#A5B4FC',
             border: '1px solid #4338CA',
             borderRadius: '20px',
-            padding: '4px 12px',
+            padding: '4px 14px',
             fontSize: '12px',
             fontWeight: 700,
             cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
           }}
         >
-          🎮 Uji Coba Mode Siswa (Play Portal) →
+          <Gamepad2 size={13} />
+          <span>Mode Siswa (Play)</span>
         </button>
       </div>
 
