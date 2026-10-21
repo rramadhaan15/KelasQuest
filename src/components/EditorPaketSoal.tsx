@@ -429,38 +429,45 @@ export function EditorPaketSoal({
             onClick={() => setShowApiKeyModal(true)}
             title="Konfigurasi kunci Google Gemini API untuk generate live (opsional)"
             style={{
-              fontSize: '12px',
+              height: '38px',
+              fontSize: '13px',
               fontWeight: 700,
               color: hasCustomKey ? '#15803D' : '#64748B',
               background: hasCustomKey ? '#DCFCE7' : '#F1F5F9',
               border: hasCustomKey ? '1px solid #86EFAC' : '1px solid var(--abu-border)',
-              padding: '4px 10px',
-              borderRadius: '12px',
+              padding: '0 14px',
+              borderRadius: '10px',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
             }}
           >
-            {hasCustomKey ? <Sparkles size={13} color="var(--ungu-monster)" /> : <Key size={13} />}
+            {hasCustomKey ? <Sparkles size={14} color="var(--ungu-monster)" /> : <Key size={14} />}
             <span>{hasCustomKey ? 'Gemini AI Aktif' : 'Kunci Gemini AI'}</span>
           </button>
 
           {teacherQuota && (
             <span
               style={{
-                fontSize: '12px',
+                height: '38px',
+                fontSize: '13px',
                 fontWeight: 700,
                 background: '#FEF3C7',
                 color: '#92400E',
-                padding: '4px 10px',
-                borderRadius: '12px',
+                padding: '0 14px',
+                borderRadius: '10px',
                 border: '1px solid #FDE68A',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '6px',
+                boxSizing: 'border-box',
+                whiteSpace: 'nowrap',
               }}
             >
-              <Zap size={12} color="#D97706" />
+              <Zap size={14} color="#D97706" />
               <span>Kuota AI: {teacherQuota.remainingQuota} / {teacherQuota.totalDailyQuota}</span>
             </span>
           )}
@@ -471,10 +478,11 @@ export function EditorPaketSoal({
               onClick={handleApproveAll}
               disabled={approvingAll}
               style={{
+                height: '38px',
                 background: '#10B981',
                 color: '#FFFFFF',
                 border: 'none',
-                padding: '8px 16px',
+                padding: '0 16px',
                 borderRadius: '10px',
                 fontSize: '13px',
                 fontWeight: 800,
@@ -482,7 +490,9 @@ export function EditorPaketSoal({
                 alignItems: 'center',
                 gap: '6px',
                 boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
+                boxSizing: 'border-box',
                 cursor: approvingAll ? 'not-allowed' : 'pointer',
+                whiteSpace: 'nowrap',
               }}
             >
               <Check size={14} />
@@ -500,19 +510,23 @@ export function EditorPaketSoal({
                 setSelectedAnswer(null);
               }}
               style={{
+                height: '38px',
                 background: '#EDE9FE',
                 color: 'var(--ungu-monster)',
                 border: '1px solid #DDD6FE',
-                padding: '8px 14px',
+                padding: '0 14px',
                 borderRadius: '10px',
                 fontSize: '13px',
                 fontWeight: 700,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
+                boxSizing: 'border-box',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
               }}
             >
-              <Play size={13} fill="currentColor" />
+              <Play size={14} fill="currentColor" />
               <span>Pratinjau Siswa</span>
             </button>
           )}
@@ -523,10 +537,11 @@ export function EditorPaketSoal({
               onClick={handleLaunchSession}
               disabled={launching}
               style={{
+                height: '38px',
                 background: 'linear-gradient(135deg, var(--api-serangan), #E0443A)',
                 color: 'var(--putih)',
                 border: 'none',
-                padding: '8px 16px',
+                padding: '0 16px',
                 borderRadius: '10px',
                 fontSize: '13px',
                 fontWeight: 800,
@@ -534,7 +549,9 @@ export function EditorPaketSoal({
                 alignItems: 'center',
                 gap: '6px',
                 boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)',
+                boxSizing: 'border-box',
                 cursor: launching ? 'not-allowed' : 'pointer',
+                whiteSpace: 'nowrap',
               }}
             >
               <Rocket size={14} />
